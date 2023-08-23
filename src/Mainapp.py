@@ -38,50 +38,13 @@ class MainWindow(QMainWindow):
         self.central_widget = QWidget() # A QWidget to work as Central Widget
         self.layoutH0 = QHBoxLayout() # Main window
         self.layoutV0 = QVBoxLayout() # Plot Column
-        self.layoutG1 = QGridLayout() # Plots
-        self.layoutGR00 = QHBoxLayout() # Plot Row 1
-        self.layoutGR01 = QHBoxLayout() # Plot Row 2
-        self.layoutGC10 = QVBoxLayout() # Plot Row 2 column 1
-        self.layoutGC11 = QVBoxLayout() # Plot Row 2 column 2
-        self.layoutGC00 = QVBoxLayout() # Plot Row 1 column 1
-        self.layoutGC01 = QVBoxLayout() # Plot Row 1 column 2
+        self.layoutG1 = ImageData.ImageReader()
         self.layoutV1 = QVBoxLayout() # File Params column
-        self.layoutH1 = QHBoxLayout() # Load/Save Image
-        self.layoutH2 = QHBoxLayout() # peak nums
-        self.layoutH3 = QHBoxLayout() # max/min pixels
-        self.layoutH3b = QHBoxLayout() # max/min pixels
-        self.layoutH4 = QHBoxLayout() # Save/Load Mask
-        self.layoutH5 = QHBoxLayout() # Number of holes in mask
-        self.layoutH6 = QHBoxLayout() # Hole Diameter
-        self.layoutH7 = QHBoxLayout() # Hole Separation
-        self.layoutH8 = QHBoxLayout() # Mask to Screen
-        self.layoutH9 = QHBoxLayout() # Calibration
+        self.ImgFields = ImageFields.ImFields()
+        self.MskFields = MaskFields.MaskWidget()
         self.layoutH10 = QHBoxLayout() # Fit/Hand Fit
         self.setCentralWidget(self.central_widget)
 
-######Complete classes
-        self.xpeaksIn = ImageFields.x_peak_read()
-        self.ypeaksIn = ImageFields.y_peak_read()
-        self.xminIn = ImageFields.x_min_read()
-        self.yminIn = ImageFields.y_min_read()
-        self.xmaxIn = ImageFields.x_max_read()
-        self.ymaxIn = ImageFields.y_max_read()
-        self.diamIn = ImageFields.hole_diam_read()
-        self.numHoles = ImageFields.hole_num_read()
-        self.sepIn = ImageFields.hole_sep_read()
-        self.Mask2ScrnIn = MaskFields.mask2Scrn_read()
-        self.Calibration = MaskFields.calib_read()
-        MainWindow.Slider1 = Sliders.slider1() #Threshold
-        MainWindow.Slider2 = Sliders.slider2() #Prominence
-        MainWindow.slY = Sliders.slider3()
-        MainWindow.slX = Sliders.slider4()
-#completed functions
-        loadImagePrompt = QPushButton('Load Image')
-        saveImagePrompt = QPushButton('*Save Image*')
-#functions to be completed
-        loadMaskPrompt = QPushButton('Load Mask')
-        saveMaskPrompt = QPushButton('Save Mask')
-        # changeThreshold = 
 #button classes to be started
 
         fit = QPushButton('Fit')
@@ -90,314 +53,22 @@ class MainWindow(QMainWindow):
 #field class to be defined
 
 #Connect your fields to functions
-        loadImagePrompt.clicked.connect(ImageData.ImageReader.on_LoadIm_clicked)
-        saveImagePrompt.clicked.connect(self.on_SaveIm_clicked)
-        loadMaskPrompt.clicked.connect(self.on_LoadMa_clicked)
-        saveMaskPrompt.clicked.connect(self.on_SaveMa_clicked)
         fit.clicked.connect(self.on_Fit_clicked)
         self.handfit.clicked.connect(self.on_Hand_clicked)
 
-#plots
-        MainWindow.plot2 = ImageData.xProjection()
-        MainWindow.plot3 = ImageData.yProjection()
-        MainWindow.plot1 = ImageData.ImagePlot1(view=pg.PlotItem())
-        MainWindow.plot4 = ImageData.ImagePlot2(view=pg.PlotItem())
-        
-
-        #Set Highest layer layout and work down
+#Set Highest layer layout and work down
         self.central_widget.setLayout(self.layoutH0)
         self.layoutH0.addLayout(self.layoutV1)#column 1
         self.layoutH0.addLayout(self.layoutV0)#column 2
 
-        self.layoutV0.addLayout(self.layoutG1)
-        
-        self.layoutG1.addWidget(MainWindow.plot2, 1, 0)
-        self.layoutG1.addWidget(MainWindow.plot4, 1, 1)
-        self.layoutG1.addLayout(self.layoutGR00, 0, 0)
-        self.layoutG1.addLayout(self.layoutGR01, 0, 1)
-        self.layoutG1.addLayout(self.layoutGC10, 1, 0)
-        self.layoutGR00.addLayout(self.layoutGC00)
-        self.layoutGC00.addWidget(MainWindow.Slider1)
-        self.layoutGC00.addWidget(MainWindow.plot1)
-        self.layoutGR00.addWidget(MainWindow.Slider2)
+        self.layoutV0.addWidget(self.layoutG1)
 
-        self.layoutGR01.addWidget(MainWindow.plot3)
-        self.layoutGR01.addWidget(MainWindow.slY)
-
-        self.layoutGC10.addWidget(MainWindow.plot2)
-        self.layoutGC10.addWidget(MainWindow.slX)
-
-        self.layoutV1.addLayout(self.layoutH1)
-        self.layoutH1.addWidget(loadImagePrompt)
-        self.layoutH1.addWidget(saveImagePrompt)
-
-        # self.layoutV1.addWidget(QLabel('What You See'))
-        self.layoutV1.addLayout(self.layoutH2)
-        self.layoutH2.addWidget(QLabel('X-peaks'))
-        self.layoutH2.addWidget(self.xpeaksIn)
-        self.layoutH2.addWidget(QLabel('Y-peaks'))
-        self.layoutH2.addWidget(self.ypeaksIn)
-
-        self.layoutV1.addLayout(self.layoutH3)
-        self.layoutH3.addWidget(QLabel('Min X'))
-        self.layoutH3.addWidget(self.xminIn)
-        self.layoutH3.addWidget(QLabel('Max X'))
-        self.layoutH3.addWidget(self.xmaxIn)
-
-        self.layoutV1.addLayout(self.layoutH3b)
-        self.layoutH3b.addWidget(QLabel('Min Y'))
-        self.layoutH3b.addWidget(self.yminIn)
-        self.layoutH3b.addWidget(QLabel('Max Y'))
-        self.layoutH3b.addWidget(self.ymaxIn)
-
-        self.layoutV1.addLayout(self.layoutH4)
-        self.layoutH4.addWidget(QLabel('Mask'))
-        self.layoutH4.addWidget(loadMaskPrompt)
-        self.layoutH4.addWidget(saveMaskPrompt)
-
-        self.layoutV1.addLayout(self.layoutH5)
-        self.layoutH5.addWidget(QLabel('Number of Holes'))
-        self.layoutH5.addWidget(self.numHoles)
-
-        self.layoutV1.addLayout(self.layoutH6)
-        self.layoutH6.addWidget(QLabel('Hole Diameter (mm)'))
-        self.layoutH6.addWidget(self.diamIn)
-
-        self.layoutV1.addLayout(self.layoutH7)
-        self.layoutH7.addWidget(QLabel('Hole Separation (mm)'))
-        self.layoutH7.addWidget(self.sepIn)
-
-        self.layoutV1.addLayout(self.layoutH8)
-        self.layoutH8.addWidget(QLabel('Mask to Screen Distance (mm)'))
-        self.layoutH8.addWidget(self.Mask2ScrnIn) 
-
-        self.layoutV1.addLayout(self.layoutH9)
-        self.layoutH9.addWidget(QLabel('Calibration (pix/mm)'))
-        self.layoutH9.addWidget(self.Calibration) 
+        self.layoutV1.addWidget(self.ImgFields)
+        self.layoutV1.addWidget(self.MskFields)
 
         self.layoutV1.addLayout(self.layoutH10)
         self.layoutH10.addWidget(fit)
         self.layoutH10.addWidget(self.handfit)   
-    
-    def updateImage1(image):
-        # MainWindow.plot2 = ImageData.xProjection()
-        # MainWindow.plot3 = ImageData.yProjection()
-        MainWindow.plot1 = ImageData.ImagePlot1(view=pg.PlotItem())
-        # MainWindow.plot4 = ImageData.ImagePlot2(view=pg.PlotItem())
-
-
-
-
-    def on_LoadIm_clicked(self):
-        self.loadImageName = QFileDialog.getOpenFileName(self, "Open Image",path, "Image Files (*.png *.jpg *.bmp *.csv *txt)")
-        # try:
-        #     self.sl.valueChanged.disconnect()
-        #     self.sl2.valueChanged.disconnect()
-        # except:
-        #     print('no slider connection')
-        # self.sl.valueChanged.connect(self.changeThreshold)#connect slider to image threshold
-        # self.sl2.valueChanged.connect(self.changeProminence)
-        # print(self.loadImageName[0][-3:])
-        if self.loadImageName[0][-3:] == "png":
-            self.imgData = ImageData.ImageReader.image_GSmatrix(self.loadImageName)
-            self.imgData = self.imgData[10:-10,10:-10]
-        elif self.loadImageName[0][-3:] == "jpg":
-            self.imgData =  ImageData.ImageReader.image_GSmatrix(self.loadImageName) 
-            self.imgData = self.imgData[10:-10,10:-10]
-        elif self.loadImageName[0][-3:] == "bmp":
-            self.imgData =  ImageData.ImageReader.image_GSmatrix(self.loadImageName) 
-            self.imgData = self.imgData[10:-10,10:-10]
-        elif self.loadImageName[0][-3:] == "csv":
-            self.imgData =  ImageData.ImageReader.csv_GSmatrix(self.loadImageName) 
-        elif self.loadImageName[0][-3:] == "txt":
-            self.imgData =  ImageData.ImageReader.csv_GSmatrix(self.loadImageName) 
-
-        self.threshold = filters.threshold_otsu(self.imgData)
-        self.binary_image = self.imgData > self.threshold/2
-        self.edges = feature.canny(self.binary_image, sigma=5)
-        # self.img2 = self.imgData+self.edges
-        outlines = np.zeros((*self.edges.shape,4))
-        outlines[:, :, 0] = 255 * self.edges
-        outlines[:, :, 3] = 255.0 * self.edges
-
-        i = 0
-        xpeaks=[]
-        ypeaks=[]
-        for row in self.imgData:
-            peaks = scipy.signal.find_peaks(row, height = self.threshold/2, prominence = 8)
-            if peaks[0].shape[0] != 0:
-                for peak in peaks[0]:
-                    xpeaks.append(peak)
-                    ypeaks.append(i)
-            i+=1
-        self.xpeaks = np.array(xpeaks)
-        self.ypeaks = np.array(ypeaks)
-        self.min_y = np.min([np.min(np.where(self.edges ==True)[1]),np.min(self.ypeaks)])
-        self.max_y = np.max([np.max(np.where(self.edges ==True)[1]), np.max(self.ypeaks)])
-        self.min_x = np.min([np.min(np.where(self.edges ==True)[0]), np.min(self.xpeaks)])
-        self.max_x = np.max([np.max(np.where(self.edges ==True)[0]),np.max(self.xpeaks)])
-        try:
-            self.p1view.clear()
-        except:
-            print('no previous view')
-        self.img = pg.ImageItem(image = self.imgData)
-        # self.plot1.setImage(self.imgData)
-
-        self.p1view = self.plot1.getView()
-        self.outlines = pg.ImageItem(image = outlines)
-        self.p1view.addItem(self.img)
-        
-        self.xmaxIn.setText(f'{self.max_x}')
-        self.xminIn.setText(f'{self.min_x}')
-        self.ymaxIn.setText(f'{self.max_y}')
-        self.yminIn.setText(f'{self.min_y}')
-        self.xpeaksIn.setText(f'{self.xpeaks.shape[0]}')
-        self.ypeaksIn.setText(f'{self.ypeaks.shape[0]}')
-        self.p1dots1 =  pg.ScatterPlotItem(x=self.xpeaks, y=self.ypeaks, pen = 'c', symbol = 'o')
-        self.p1linev1 = pg.PlotCurveItem(x=[self.min_x, self.min_x], y=[self.min_y,self.max_y], pen = self.gpen)
-        self.p1linev2 = pg.PlotCurveItem(x=[self.max_x, self.max_x], y=[self.min_y,self.max_y], pen =self.gpen)
-        self.p1lineh1 = pg.PlotCurveItem(x=[self.min_x, self.max_x], y=[self.min_y,self.min_y], pen = self.gpen)
-        self.p1lineh2 = pg.PlotCurveItem(x=[self.min_x, self.max_x], y=[self.max_y,self.max_y], pen =self.gpen)
-        self.p1view = self.plot1.getView()
-        self.p1view.addItem(self.p1dots1)
-        self.p1view.addItem(self.outlines)
-        self.p1view.addItem(self.p1lineh1)
-        self.p1view.addItem(self.p1linev1)
-        self.p1view.addItem(self.p1lineh2)
-        self.p1view.addItem(self.p1linev2)
-        
-        self.xminIn.setText(np.min(self.edges[0]))
-        self.plot4.setImage(self.img2)
-        #self.plot1.setImage(dummy)
-        fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(14,10))
-        ax[1].imshow(self.edges, origin='lower')
-        im = ax[0].imshow(self.imgData, origin='lower')
-        divider = make_axes_locatable(ax[0])
-        cax = divider.append_axes('right', size='5%', pad=0.05)
-        fig.colorbar(im,cax=cax, orientation='vertical')
-        plt.show()
-
-    def on_SaveIm_clicked(self):
-        saveImageName = QFileDialog.getSaveFileName(self, "Save Image",path, "Image Files (*.png *.jpg *.bmp)")
-
-
-    def on_LoadMa_clicked(self):
-        loadMaskName = QFileDialog.getOpenFileName(self, "Load Mask",path, "*.csv")
-        print(loadMaskName[0])
-        file = open(loadMaskName[0], 'r')
-        data = list(csv.reader(file, delimiter=","))
-        print(data[0][0])
-        print(data[0][1])
-        print(data[0][2])
-        print(data[0][3])
-        print(data[0][4])
-        self.numHoles.setText(data[0][0])
-        self.diamIn.setText(data[0][1])
-        self.sepIn.setText(data[0][2])
-        self.Mask2ScrnIn.setText(data[0][3])
-        self.Calibration.setText(data[0][4])
-        file.close()
-   
-    def on_SaveMa_clicked(self):
-        saveMaskName = QFileDialog.getSaveFileName(self, "Save Mask",path, "*.csv")
-        file = open(saveMaskName[0], 'w')
-        writer =csv.writer(file)
-        writer.writwrow([self.numHoles.text(), self.diamIn.text(), self.sepIn.text(),self.Mask2ScrnIn.text(), self.Calibration.text()])
-        file.close()
-   
-    # def changeThreshold(self,value):
-    #     # self.plot1.clear()
-    #     self.edges = feature.canny(self.binary_image, sigma=value)
-    #     outlines = np.zeros((*self.edges.shape,4))
-    #     outlines[:, :, 0] = 255 * self.edges
-    #     outlines[:, :, 3] = 255.0 * self.edges
-    #     # self.plot1.setImage(self.imgData)
-    #     # self.p1view = self.plot1.getView()
-    #     try:
-    #         self.p1view.clear()
-    #     except:
-    #         print('no previous view')
-
-    #     self.p1view.addItem(self.img)
-    #     self.outlines = pg.ImageItem(image = outlines)
-
-    #     self.min_y = np.min([np.min(np.where(self.edges ==True)[1]),np.min(self.ypeaks)])
-    #     self.max_y = np.max([np.max(np.where(self.edges ==True)[1]), np.max(self.ypeaks)])
-    #     self.min_x = np.min([np.min(np.where(self.edges ==True)[0]), np.min(self.xpeaks)])
-    #     self.max_x = np.max([np.max(np.where(self.edges ==True)[0]),np.max(self.xpeaks)])
-
-    #     self.img = pg.ImageItem(image = self.imgData)
-    #     # self.plot1.setImage(self.imgData)
-
-    #     self.xmaxIn.setText(f'{self.max_x}')
-    #     self.xminIn.setText(f'{self.min_x}')
-    #     self.ymaxIn.setText(f'{self.max_y}')
-    #     self.yminIn.setText(f'{self.min_y}')
-        
-    #     self.p1dots1 =  pg.ScatterPlotItem(x=self.xpeaks, y=self.ypeaks, pen = 'c', symbol = 'o')
-    #     self.p1linev1 = pg.PlotCurveItem(x=[self.min_x, self.min_x], y=[self.min_y,self.max_y], pen = self.gpen)
-    #     self.p1linev2 = pg.PlotCurveItem(x=[self.max_x, self.max_x], y=[self.min_y,self.max_y], pen =self.gpen)
-    #     self.p1lineh1 = pg.PlotCurveItem(x=[self.min_x, self.max_x], y=[self.min_y,self.min_y], pen = self.gpen)
-    #     self.p1lineh2 = pg.PlotCurveItem(x=[self.min_x, self.max_x], y=[self.max_y,self.max_y], pen =self.gpen)
-    #     self.p1view = self.plot1.getView()
-    #     self.p1view.addItem(self.p1dots1)
-    #     self.p1view.addItem(self.outlines)
-    #     self.p1view.addItem(self.p1lineh1)
-    #     self.p1view.addItem(self.p1linev1)
-    #     self.p1view.addItem(self.p1lineh2)
-    #     self.p1view.addItem(self.p1linev2)
-
-    # def changeProminence(self,value):
-    #     # self.plot1.clear()
-    #     # self.edges = feature.canny(self.binary_image, sigma=value)
-    #     outlines = np.zeros((*self.edges.shape,4))
-    #     outlines[:, :, 0] = 255 * self.edges
-    #     outlines[:, :, 3] = 255.0 * self.edges
-    #     # self.plot1.setImage(self.imgData)
-    #     # self.p1view = self.plot1.getView()
-    #     i = 0
-    #     xpeaks=[]
-    #     ypeaks=[]
-    #     for row in self.imgData:
-    #         peaks = scipy.signal.find_peaks(row, height = self.threshold/2, prominence = value)
-    #         if peaks[0].shape[0] != 0:
-    #             for peak in peaks[0]:
-    #                 xpeaks.append(peak)
-    #                 ypeaks.append(i)
-    #         i+=1
-    #     self.xpeaks = np.array(xpeaks)
-    #     self.ypeaks = np.array(ypeaks)
-    #     self.min_y = np.min([np.min(np.where(self.edges ==True)[1]),np.min(self.ypeaks)])
-    #     self.max_y = np.max([np.max(np.where(self.edges ==True)[1]), np.max(self.ypeaks)])
-    #     self.min_x = np.min([np.min(np.where(self.edges ==True)[0]), np.min(self.xpeaks)])
-    #     self.max_x = np.max([np.max(np.where(self.edges ==True)[0]),np.max(self.xpeaks)])
-    #     try:
-    #         self.p1view.clear()
-    #     except:
-    #         print('no previous view')
-
-    #     self.p1view.addItem(self.img)
-    #     self.outlines = pg.ImageItem(image = outlines)
-    #     # self.plot1.setImage(self.imgData)
-
-    #     self.xmaxIn.setText(f'{self.max_x}')
-    #     self.xminIn.setText(f'{self.min_x}')
-    #     self.ymaxIn.setText(f'{self.max_y}')
-    #     self.yminIn.setText(f'{self.min_y}')
-    #     self.p1dots1 =  pg.ScatterPlotItem(x=self.xpeaks, y=self.ypeaks, pen = 'c', symbol = 'o')
-    #     self.p1linev1 = pg.PlotCurveItem(x=[self.min_x, self.min_x], y=[self.min_y,self.max_y], pen = self.gpen)
-    #     self.p1linev2 = pg.PlotCurveItem(x=[self.max_x, self.max_x], y=[self.min_y,self.max_y], pen =self.gpen)
-    #     self.p1lineh1 = pg.PlotCurveItem(x=[self.min_x, self.max_x], y=[self.min_y,self.min_y], pen = self.gpen)
-    #     self.p1lineh2 = pg.PlotCurveItem(x=[self.min_x, self.max_x], y=[self.max_y,self.max_y], pen =self.gpen)
-    #     self.p1view = self.plot1.getView()
-    #     self.p1view.addItem(self.p1dots1)
-    #     self.p1view.addItem(self.outlines)
-    #     self.p1view.addItem(self.p1lineh1)
-    #     self.p1view.addItem(self.p1linev1)
-    #     self.p1view.addItem(self.p1lineh2)
-    #     self.p1view.addItem(self.p1linev2)
-    #     # self.plot2.plot(self.hour, self.temperature*value, pen =self.gpen)     
-    #     # self.plot3.plot(self.temperature*value, self.hour, pen =self.gpen)    
 
     def changeFitplots(self,value):
         # self.plot1.clear()
@@ -426,7 +97,6 @@ class MainWindow(QMainWindow):
         # self.plot4.setImage(self.edges)
         # self.plot4.show()
  
-
 
 
     def on_Fit_clicked(self):
@@ -506,6 +176,7 @@ class MainWindow(QMainWindow):
         self.projectionsdf = pd.DataFrame({'HoleX':templocs.X.to_numpy(),'MeanX': Meanx,'SigX': Sigx,'IntX': Intx,'HoleY': templocs.Y.to_numpy(), 'MeanY': yprojMean, 'SigY': yprojSig,'IntY': yprojInt})
         self.sl.setValue(4)
         return
+    
     def returnProjection(self, isYdir):
         self.num_peaks_x = int(self.xpeaksIn.text())
         self.num_peaks_y = int(self.ypeaksIn.text())
@@ -546,6 +217,7 @@ class MainWindow(QMainWindow):
             return self.Yprojdf
     def returnImageData(self):
         return self.imgData, self.threshold, self.d, self.x3s, self.y3s
+    
     def on_Hand_clicked(self):
         self.w2 = HandFitWindow.Handfitting(self.Xprojdf, self.Yprojdf, self.imgData, self.threshold, self.d, self.x3s, self.y3s)
         self.w2.show()

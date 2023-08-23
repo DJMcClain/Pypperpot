@@ -30,12 +30,51 @@ path = 'D:/Workspace/Images/'
 scale = 1
 imgData = np.array([[0, 0, 0], [0, 0, 0]])
 
-class ImageReader():
-    gpen = pg.mkPen(color=(0, 255, 0))
 
+class ImageReader(QMainWindow):
+    gpen = pg.mkPen(color=(0, 255, 0))
+    hour = np.array([1,2,3,4,5,6,7,8,9,10])
+    temperature = np.array([30,32,34,32,33,31,29,32,35,45])
     def __init__(self):
         super(ImageReader, self).__init__()
-    
+        self.central_widget = QWidget() # A QWidget to work as Central Widget
+        self.layoutG1 = QGridLayout() # Plots
+        self.layoutGR00 = QHBoxLayout() # Plot Row 1
+        self.layoutGR01 = QHBoxLayout() # Plot Row 2
+        self.layoutGC10 = QVBoxLayout() # Plot Row 2 column 1
+        self.layoutGC11 = QVBoxLayout() # Plot Row 2 column 2
+        self.layoutGC00 = QVBoxLayout() # Plot Row 1 column 1
+        self.layoutGC01 = QVBoxLayout() # Plot Row 1 column 2
+        self.setCentralWidget(self.central_widget)
+
+        ImageReader.Slider1 = Sliders.slider1() #Threshold
+        ImageReader.Slider2 = Sliders.slider2() #Prominence
+        ImageReader.slY = Sliders.slider3()
+        ImageReader.slX = Sliders.slider4()
+
+        ImageReader.plot2 = ImageData.xProjection()
+        ImageReader.plot3 = ImageData.yProjection()
+        ImageReader.plot1 = pg.ImageView(view=pg.PlotItem())#ImageData.ImagePlot1(view=pg.PlotItem())
+        ImageReader.plot4 = pg.ImageView(view=pg.PlotItem())#ImageData.ImagePlot2(view=pg.PlotItem())
+
+        self.central_widget.setLayout(self.layoutG1)
+        
+        self.layoutG1.addWidget(ImageReader.plot2, 1, 0)
+        self.layoutG1.addWidget(ImageReader.plot4, 1, 1)
+        self.layoutG1.addLayout(self.layoutGR00, 0, 0)
+        self.layoutG1.addLayout(self.layoutGR01, 0, 1)
+        self.layoutG1.addLayout(self.layoutGC10, 1, 0)
+        self.layoutGR00.addLayout(self.layoutGC00)
+        self.layoutGC00.addWidget(ImageReader.Slider1)
+        self.layoutGC00.addWidget(ImageReader.plot1)
+        self.layoutGR00.addWidget(ImageReader.Slider2)
+
+        self.layoutGR01.addWidget(ImageReader.plot3)
+        self.layoutGR01.addWidget(ImageReader.slY)
+
+        self.layoutGC10.addWidget(ImageReader.plot2)
+        self.layoutGC10.addWidget(ImageReader.slX)
+
     def on_LoadIm_clicked():
         loadImageName = QFileDialog.getOpenFileName( caption="Open Image",directory=path, filter="Image Files (*.png *.jpg *.bmp *.csv *txt)")
 
@@ -56,7 +95,7 @@ class ImageReader():
         elif loadImageName[0][-3:] == "txt":
             ImageData.imgData = ImageReader.csv_GSmatrix(loadImageName) 
         #print(ImageData.imgData)
-        Mainapp.MainWindow.updateImage1(ImageData.imgData)
+        # Mainapp.MainWindow.updateImage1(ImageData.imgData)
 
         ImageReader.threshold = filters.threshold_otsu(ImageData.imgData)
         ImageReader.binary_image = ImageData.imgData > ImageReader.threshold/2
@@ -85,46 +124,36 @@ class ImageReader():
             ImageReader.p1view.clear()
         except:
             print('no previous view')
-        image = pg.ImageItem(image = ImageData.imgData.T)
+        ImageReader.img = pg.ImageItem(image = ImageData.imgData.T)
 
-        # ImagePlot1.setImage(img = ImageReader.imgData, self = ImagePlot1)
-        ImageReader.p1view = ImagePlot1(imageItem=image)
+        ImageReader.p1view = ImageReader.plot1.getView()
         ImageReader.outlines = pg.ImageItem(image = ImageReader.outlines)
-        ImageReader.p1view.addItem(image)
+        ImageReader.p1view.addItem(ImageReader.img)
 
-        ImageFields.x_max_read.setText(f'{ImageReader.max_x}')
-        Mainapp.MainWindow.xminIn.setText(f'{ImageReader.min_x}')
-        Mainapp.MainWindow.ymaxIn.setText(f'{ImageReader.max_y}')
-        Mainapp.MainWindow.yminIn.setText(f'{ImageReader.min_y}')
-        Mainapp.MainWindow.xpeaksIn.setText(f'{ImageReader.xpeaks.shape[0]}')
-        Mainapp.MainWindow.ypeaksIn.setText(f'{ImageReader.ypeaks.shape[0]}')
+        ImageFields.ImFields.xmaxIn.setText(f'{ImageReader.max_x}')
+        ImageFields.ImFields.xminIn.setText(f'{ImageReader.min_x}')
+        ImageFields.ImFields.ymaxIn.setText(f'{ImageReader.max_y}')
+        ImageFields.ImFields.yminIn.setText(f'{ImageReader.min_y}')
+        ImageFields.ImFields.xpeaksIn.setText(f'{ImageReader.xpeaks.shape[0]}')
+        ImageFields.ImFields.ypeaksIn.setText(f'{ImageReader.ypeaks.shape[0]}')
+
         ImageReader.p1dots1 =  pg.ScatterPlotItem(x=ImageReader.xpeaks, y=ImageReader.ypeaks, pen = 'c', symbol = 'o')
         ImageReader.p1linev1 = pg.PlotCurveItem(x=[ImageReader.min_x, ImageReader.min_x], y=[ImageReader.min_y,ImageReader.max_y], pen = ImageReader.gpen)
         ImageReader.p1linev2 = pg.PlotCurveItem(x=[ImageReader.max_x, ImageReader.max_x], y=[ImageReader.min_y,ImageReader.max_y], pen =ImageReader.gpen)
         ImageReader.p1lineh1 = pg.PlotCurveItem(x=[ImageReader.min_x, ImageReader.max_x], y=[ImageReader.min_y,ImageReader.min_y], pen = ImageReader.gpen)
         ImageReader.p1lineh2 = pg.PlotCurveItem(x=[ImageReader.min_x, ImageReader.max_x], y=[ImageReader.max_y,ImageReader.max_y], pen =ImageReader.gpen)
-        ImageReader.p1view = ImagePlot1.getView()
+        # ImageReader.p1view = ImageReader.plot1.getView()
         ImageReader.p1view.addItem(ImageReader.p1dots1)
         ImageReader.p1view.addItem(ImageReader.outlines)
         ImageReader.p1view.addItem(ImageReader.p1lineh1)
         ImageReader.p1view.addItem(ImageReader.p1linev1)
         ImageReader.p1view.addItem(ImageReader.p1lineh2)
         ImageReader.p1view.addItem(ImageReader.p1linev2)
-        ImagePlot1.setView(ImageReader.p1view)
-        # ImageReader.xminIn.setText(np.min(ImageReader.edges[0]))
-        # ImageReader.plot4.setImage(ImageReader.img2)
-        # ImageReader.plot1.setImage(dummy)
-        # fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(14,10))
-        # ax[1].imshow(ImageReader.edges, origin='lower')
-        # im = ax[0].imshow(ImageReader.imgData, origin='lower')
-        # divider = make_axes_locatable(ax[0])
-        # cax = divider.append_axes('right', size='5%', pad=0.05)
-        # fig.colorbar(im,cax=cax, orientation='vertical')
-        # plt.show()
+
     def on_SaveIm_clicked(ImageReader):
         saveImageName = QFileDialog.getSaveFileName(ImageReader, "Save Image",path, "Image Files (*.png *.jpg *.bmp)")
 
-    def changeThreshold(ImageReader,value):
+    def changeThreshold(value):
         # ImageReader.plot1.clear()
         ImageReader.edges = feature.canny(ImageReader.binary_image, sigma=value)
         outlines = np.zeros((*ImageReader.edges.shape,4))
@@ -142,12 +171,12 @@ class ImageReader():
         ImageReader.max_y = np.max([np.max(np.where(ImageReader.edges ==True)[1]), np.max(ImageReader.ypeaks)])
         ImageReader.min_x = np.min([np.min(np.where(ImageReader.edges ==True)[0]), np.min(ImageReader.xpeaks)])
         ImageReader.max_x = np.max([np.max(np.where(ImageReader.edges ==True)[0]),np.max(ImageReader.xpeaks)])
-        ImageReader.img = pg.ImageItem(image = ImageReader.imgData)
+        ImageReader.img = pg.ImageItem(image = ImageData.imgData.T)
         # ImageReader.plot1.setImage(ImageReader.imgData)
-        ImageReader.xmaxIn.setText(f'{ImageReader.max_x}')
-        ImageReader.xminIn.setText(f'{ImageReader.min_x}')
-        ImageReader.ymaxIn.setText(f'{ImageReader.max_y}')
-        ImageReader.yminIn.setText(f'{ImageReader.min_y}')
+        ImageFields.ImFields.xmaxIn.setText(f'{ImageReader.max_x}')
+        ImageFields.ImFields.xminIn.setText(f'{ImageReader.min_x}')
+        ImageFields.ImFields.ymaxIn.setText(f'{ImageReader.max_y}')
+        ImageFields.ImFields.yminIn.setText(f'{ImageReader.min_y}')
 
         ImageReader.p1dots1 =  pg.ScatterPlotItem(x=ImageReader.xpeaks, y=ImageReader.ypeaks, pen = 'c', symbol = 'o')
         ImageReader.p1linev1 = pg.PlotCurveItem(x=[ImageReader.min_x, ImageReader.min_x], y=[ImageReader.min_y,ImageReader.max_y], pen = ImageReader.gpen)
@@ -161,7 +190,10 @@ class ImageReader():
         ImageReader.p1view.addItem(ImageReader.p1linev1)
         ImageReader.p1view.addItem(ImageReader.p1lineh2)
         ImageReader.p1view.addItem(ImageReader.p1linev2)
-    def changeProminence(ImageReader,value):
+        ImageReader.plot2.plot(ImageReader.hour*value, ImageReader.temperature, pen =ImageReader.gpen)     
+        ImageReader.plot3.plot(ImageReader.temperature, ImageReader.hour*value, pen =ImageReader.gpen) 
+
+    def changeProminence(value):
         # ImageReader.plot1.clear()
         # ImageReader.edges = feature.canny(ImageReader.binary_image, sigma=value)
         outlines = np.zeros((*ImageReader.edges.shape,4))
@@ -172,7 +204,7 @@ class ImageReader():
         i = 0
         xpeaks=[]
         ypeaks=[]
-        for row in ImageReader.imgData:
+        for row in ImageData.imgData:
             peaks = scipy.signal.find_peaks(row, height = ImageReader.threshold/2, prominence = value)
             if peaks[0].shape[0] != 0:
                 for peak in peaks[0]:
@@ -191,11 +223,12 @@ class ImageReader():
             print('no previous view')
         ImageReader.p1view.addItem(ImageReader.img)
         ImageReader.outlines = pg.ImageItem(image = outlines)
-        # ImageReader.plot1.setImage(ImageReader.imgData)
-        ImageReader.xmaxIn.setText(f'{ImageReader.max_x}')
-        ImageReader.xminIn.setText(f'{ImageReader.min_x}')
-        ImageReader.ymaxIn.setText(f'{ImageReader.max_y}')
-        ImageReader.yminIn.setText(f'{ImageReader.min_y}')
+
+        ImageFields.ImFields.xmaxIn.setText(f'{ImageReader.max_x}')
+        ImageFields.ImFields.xminIn.setText(f'{ImageReader.min_x}')
+        ImageFields.ImFields.ymaxIn.setText(f'{ImageReader.max_y}')
+        ImageFields.ImFields.yminIn.setText(f'{ImageReader.min_y}')
+
         ImageReader.p1dots1 =  pg.ScatterPlotItem(x=ImageReader.xpeaks, y=ImageReader.ypeaks, pen = 'c', symbol = 'o')
         ImageReader.p1linev1 = pg.PlotCurveItem(x=[ImageReader.min_x, ImageReader.min_x], y=[ImageReader.min_y,ImageReader.max_y], pen = ImageReader.gpen)
         ImageReader.p1linev2 = pg.PlotCurveItem(x=[ImageReader.max_x, ImageReader.max_x], y=[ImageReader.min_y,ImageReader.max_y], pen =ImageReader.gpen)
@@ -208,8 +241,8 @@ class ImageReader():
         ImageReader.p1view.addItem(ImageReader.p1linev1)
         ImageReader.p1view.addItem(ImageReader.p1lineh2)
         ImageReader.p1view.addItem(ImageReader.p1linev2)
-        # ImageReader.plot2.plot(ImageReader.hour, ImageReader.temperature*value, pen =ImageReader.gpen)     
-        # ImageReader.plot3.plot(ImageReader.temperature*value, ImageReader.hour, pen =ImageReader.gpen) 
+        ImageReader.plot2.plot(ImageReader.hour, ImageReader.temperature*value, pen =ImageReader.gpen)     
+        ImageReader.plot3.plot(ImageReader.temperature*value, ImageReader.hour, pen =ImageReader.gpen) 
     def image_GSmatrix(path):
         img = Image.open(path[0]).convert('L')  # convert image to 8-bit grayscale
         WIDTH, HEIGHT = img.size
@@ -248,18 +281,7 @@ class yProjection(PlotWidget):
         self.gpen = pg.mkPen(color=(0, 255, 0))
         self.plot(self.temperature, self.hour, pen = self.gpen)
 
-class ImagePlot1(pg.ImageView):
-    def __init__(self, parent=None, name="ImageView1", view=None, imageItem=None, levelMode='mono', discreteTimeLine=False, roi=None, normRoi=None, *args):
-        super().__init__(parent, name, view, imageItem, levelMode, discreteTimeLine, roi, normRoi, *args)
-        self.setImage(img = ImageData.imgData)
-        self.p1view = self.getView()
-        
-    def setView(viewer):
-        ImagePlot1.setImage(img = viewer)
 
-    def gettheView():
-        print("we made it here")
-        return ImagePlot1.view
     
 class ImagePlot2(pg.ImageView):
     def __init__(self, parent=None, name="ImageView2", view=None, imageItem=None, levelMode='mono', discreteTimeLine=False, roi=None, normRoi=None, *args):
