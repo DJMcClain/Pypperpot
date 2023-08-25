@@ -22,6 +22,7 @@ import ImageData
 import Mainapp
 import MaskFields
 import ImageFields
+import Fitter
 
 prombool = False
 threshbool = False
@@ -157,6 +158,9 @@ class slider3(QWidget):#Y
 
     def changeSlider(self):
         self.slValue.setText(str(self.sl.value()))
+        if Fitter.Fits.fitbool == True:
+            Fitter.Fits.changeFitplots(self.sl.value(), isX = False)
+
     
     def returnValue(self):
         return(int(self.slValue.text()))
@@ -200,6 +204,8 @@ class slider4(QWidget):#X
 
     def changeSlider(self):
         self.slValue.setText(str(self.sl.value()))
+        if Fitter.Fits.fitbool == True:
+            Fitter.Fits.changeFitplots(self.sl.value(), isX = True)
     
     def returnValue(self):
         return(int(self.slValue.text()))

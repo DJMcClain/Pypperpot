@@ -41,8 +41,11 @@ class ImFields(QMainWindow):
         loadImagePrompt.clicked.connect(ImageData.ImageReader.on_LoadIm_clicked)
         saveImagePrompt.clicked.connect(ImageData.ImageReader.on_SaveIm_clicked)
 
-        ClearPrompt = QPushButton('*Toggle Image Additives*') #TODO
-        ReducePrompt = QPushButton('*Reduce Peak Number*')#TODO
+        
+        FindPeaksPrompt = QPushButton('Find Peaks')
+        ReducePrompt = QPushButton('Reduce Peak Number')
+        FindPeaksPrompt.clicked.connect(ImageData.ImageReader.on_FindPeaks_clicked)
+        ReducePrompt.clicked.connect(ImageData.ImageReader.on_Reduce_clicked)
 
         ImFields.xpeaksIn = x_peak_read()
         ImFields.ypeaksIn = y_peak_read()
@@ -75,7 +78,7 @@ class ImFields(QMainWindow):
         self.layoutH3b.addWidget(ImFields.ymaxIn)
         
         self.layoutV1.addLayout(self.layoutH4)
-        self.layoutH4.addWidget(ClearPrompt)
+        self.layoutH4.addWidget(FindPeaksPrompt)
         self.layoutH4.addWidget(ReducePrompt)
 
 class y_peak_read(QLineEdit):

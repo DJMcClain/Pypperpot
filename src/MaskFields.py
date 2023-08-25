@@ -39,11 +39,11 @@ class MaskWidget(QMainWindow):
         self.layoutH9 = QHBoxLayout() # Calibration
         self.setCentralWidget(self.central_widget)
 
-        self.diamIn = hole_diam_read()
-        self.numHoles = hole_num_read()
-        self.sepIn = hole_sep_read()
-        self.Mask2ScrnIn = mask2Scrn_read()
-        self.Calibration = calib_read()
+        MaskWidget.diamIn = hole_diam_read()
+        MaskWidget.numHoles = hole_num_read()
+        MaskWidget.sepIn = hole_sep_read()
+        MaskWidget.Mask2ScrnIn = mask2Scrn_read()
+        MaskWidget.Calibration = calib_read()
 
         loadMaskPrompt = QPushButton('Load Mask')
         saveMaskPrompt = QPushButton('Save Mask')

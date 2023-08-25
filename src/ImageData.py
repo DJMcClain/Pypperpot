@@ -94,13 +94,27 @@ class ImageReader(QMainWindow):
             ImageData.imgData = ImageReader.csv_GSmatrix(loadImageName) 
         elif loadImageName[0][-3:] == "txt":
             ImageData.imgData = ImageReader.csv_GSmatrix(loadImageName) 
-        #print(ImageData.imgData)
-        # Mainapp.MainWindow.updateImage1(ImageData.imgData)
 
+        try:
+            ImageReader.p1view.clear()
+        except:
+            print('no previous view')
+        ImageData.imgData = ImageData.imgData.T
+        ImageData.x_offset = ImageData.imgData.shape[0]/2
+        ImageData.y_offset = ImageData.imgData.shape[1]/2
+        ImageReader.img = pg.ImageItem(image = ImageData.imgData)
+        ImageReader.img2 = pg.ImageItem(image = ImageData.imgData) 
+        ImageReader.p4view = ImageReader.plot4.getView()
+        ImageReader.p4view.addItem(ImageReader.img2)
+
+        ImageReader.p1view = ImageReader.plot1.getView()
+        ImageReader.p1view.addItem(ImageReader.img)
+
+
+    def on_FindPeaks_clicked():
         ImageReader.threshold = filters.threshold_otsu(ImageData.imgData)
         ImageReader.binary_image = ImageData.imgData > ImageReader.threshold/2
         ImageReader.edges = feature.canny(ImageReader.binary_image, sigma=5)
-        # ImageReader.img2 = ImageReader.imgData+ImageReader.edges
         ImageReader.outlines = np.zeros((*ImageReader.edges.shape,4))
         ImageReader.outlines[:, :, 0] = 255 * ImageReader.edges
         ImageReader.outlines[:, :, 3] = 255.0 * ImageReader.edges
@@ -114,29 +128,34 @@ class ImageReader(QMainWindow):
                     xpeaks.append(peak)
                     ypeaks.append(i)
             i+=1
+
+        #Define Values
         ImageReader.xpeaks = np.array(xpeaks)
         ImageReader.ypeaks = np.array(ypeaks)
         ImageReader.min_y = np.min([np.min(np.where(ImageReader.edges ==True)[1]), np.min(ImageReader.ypeaks)])
         ImageReader.max_y = np.max([np.max(np.where(ImageReader.edges ==True)[1]), np.max(ImageReader.ypeaks)])
         ImageReader.min_x = np.min([np.min(np.where(ImageReader.edges ==True)[0]), np.min(ImageReader.xpeaks)])
         ImageReader.max_x = np.max([np.max(np.where(ImageReader.edges ==True)[0]), np.max(ImageReader.xpeaks)])
-        try:
-            ImageReader.p1view.clear()
-        except:
-            print('no previous view')
-        ImageReader.img = pg.ImageItem(image = ImageData.imgData.T)
-
-        ImageReader.p1view = ImageReader.plot1.getView()
-        ImageReader.outlines = pg.ImageItem(image = ImageReader.outlines)
-        ImageReader.p1view.addItem(ImageReader.img)
-
+        #Write Values to GUI
         ImageFields.ImFields.xmaxIn.setText(f'{ImageReader.max_x}')
         ImageFields.ImFields.xminIn.setText(f'{ImageReader.min_x}')
         ImageFields.ImFields.ymaxIn.setText(f'{ImageReader.max_y}')
         ImageFields.ImFields.yminIn.setText(f'{ImageReader.min_y}')
         ImageFields.ImFields.xpeaksIn.setText(f'{ImageReader.xpeaks.shape[0]}')
         ImageFields.ImFields.ypeaksIn.setText(f'{ImageReader.ypeaks.shape[0]}')
+        #define variables from GUI
+        ImageData.num_peaks_x = int(ImageFields.ImFields.xpeaksIn.text())
+        ImageData.num_peaks_y = int(ImageFields.ImFields.ypeaksIn.text())
+        
+        try:
+            ImageReader.p1view.clear()
+        except:
+            print('no previous view')
 
+        ImageReader.p1view = ImageReader.plot1.getView()
+        ImageReader.outlines = pg.ImageItem(image = ImageReader.outlines)
+        ImageReader.p1view.addItem(ImageReader.img)
+        
         ImageReader.p1dots1 =  pg.ScatterPlotItem(x=ImageReader.xpeaks, y=ImageReader.ypeaks, pen = 'c', symbol = 'o')
         ImageReader.p1linev1 = pg.PlotCurveItem(x=[ImageReader.min_x, ImageReader.min_x], y=[ImageReader.min_y,ImageReader.max_y], pen = ImageReader.gpen)
         ImageReader.p1linev2 = pg.PlotCurveItem(x=[ImageReader.max_x, ImageReader.max_x], y=[ImageReader.min_y,ImageReader.max_y], pen =ImageReader.gpen)
@@ -154,6 +173,7 @@ class ImageReader(QMainWindow):
         saveImageName = QFileDialog.getSaveFileName(ImageReader, "Save Image",path, "Image Files (*.png *.jpg *.bmp)")
 
     def changeThreshold(value):
+        ImageData.reduced = False
         # ImageReader.plot1.clear()
         ImageReader.edges = feature.canny(ImageReader.binary_image, sigma=value)
         outlines = np.zeros((*ImageReader.edges.shape,4))
@@ -171,7 +191,7 @@ class ImageReader(QMainWindow):
         ImageReader.max_y = np.max([np.max(np.where(ImageReader.edges ==True)[1]), np.max(ImageReader.ypeaks)])
         ImageReader.min_x = np.min([np.min(np.where(ImageReader.edges ==True)[0]), np.min(ImageReader.xpeaks)])
         ImageReader.max_x = np.max([np.max(np.where(ImageReader.edges ==True)[0]),np.max(ImageReader.xpeaks)])
-        ImageReader.img = pg.ImageItem(image = ImageData.imgData.T)
+        ImageReader.img = pg.ImageItem(image = ImageData.imgData)
         # ImageReader.plot1.setImage(ImageReader.imgData)
         ImageFields.ImFields.xmaxIn.setText(f'{ImageReader.max_x}')
         ImageFields.ImFields.xminIn.setText(f'{ImageReader.min_x}')
@@ -243,6 +263,7 @@ class ImageReader(QMainWindow):
         ImageReader.p1view.addItem(ImageReader.p1linev2)
         ImageReader.plot2.plot(ImageReader.hour, ImageReader.temperature*value, pen =ImageReader.gpen)     
         ImageReader.plot3.plot(ImageReader.temperature*value, ImageReader.hour, pen =ImageReader.gpen) 
+    
     def image_GSmatrix(path):
         img = Image.open(path[0]).convert('L')  # convert image to 8-bit grayscale
         WIDTH, HEIGHT = img.size
@@ -261,6 +282,71 @@ class ImageReader(QMainWindow):
         print(f'min:{data.min()}  max:{data.max()}')
         return data   
 
+    def on_Reduce_clicked():
+        try:
+            ImageData.n_holes = int(MaskFields.MaskWidget.numHoles.text())
+            ImageData.hole_diameter = float(MaskFields.MaskWidget.diamIn.text())
+            ImageData.hole_separation = float(MaskFields.MaskWidget.sepIn.text())
+            ImageData.mask_to_screen = float(MaskFields.MaskWidget.Mask2ScrnIn.text())
+            ImageData.pixpermm = float(MaskFields.MaskWidget.Calibration.text())
+            ImageData.d = (ImageData.hole_separation*ImageData.pixpermm)/2+ImageData.hole_diameter*ImageData.pixpermm
+
+            ImageData.reduced = True
+        except:
+            msgBox = QMessageBox()
+            msgBox.setWindowIcon(QIcon("mrsPepper.png"))
+            msgBox.setWindowTitle('Mask Read Error')
+            msgBox.setIcon(QMessageBox.Critical)
+            msgBox.setText('Fill out mask information before reducing peaks')
+            msgBox.exec_()
+
+        y1s = []
+        y2s = []
+        x1s = []
+        x2s = []
+
+        for x1, y1 in zip(*np.where(ImageReader.edges)):
+            y1s.append(y1)
+            x1s.append(x1)
+    
+        y1s = np.array(y1s)
+        x1s = np.array(x1s)
+        x2s, y2s = ImageReader.cutdown(x1s,y1s,  math.ceil(ImageData.d/2), x2s,y2s)
+        ImageData.y3s = []
+        ImageData.x3s = []
+        ImageData.x3s, ImageData.y3s = ImageReader.cutdown(x2s,y2s,  math.ceil(ImageData.d/2), ImageData.x3s,ImageData.y3s)
+        ImageFields.ImFields.ypeaksIn.setText(f'{ImageData.y3s.shape[0]}')
+        ImageFields.ImFields.xpeaksIn.setText(f'{ImageData.x3s.shape[0]}')
+        locs2 =[]
+        for i in range(ImageData.n_holes):
+            for j in range(ImageData.n_holes):
+                locs2.append([i*ImageData.d-ImageData.d*(ImageData.n_holes-1)/2,j*ImageData.d-(ImageData.d*(ImageData.n_holes-1))/2])
+        locs2 = np.array(locs2).T
+        ImageData.locsdf = pd.DataFrame({'X':locs2[0]+ImageData.x_offset, 'Y':locs2[1]+ImageData.y_offset})
+        ImageData.p4dots1 =  pg.ScatterPlotItem(x=ImageData.locsdf.X, y=ImageData.locsdf.Y, pen = 'c', symbol = 'o')
+        try:
+            ImageReader.p4view.clear()
+        except:
+            print('no previous view')
+        ImageReader.p4view = ImageReader.plot4.getView()
+        ImageReader.p4view.addItem(ImageReader.img2)
+        ImageReader.p4view.addItem(ImageData.p4dots1)
+
+    def cutdown( xs, ys, gate, x2s, y2s):
+            for i in range(ys.shape[0]):
+                temp1 = ys[i]
+                temp2 = ys[(ys >= temp1 - gate) & (ys <= temp1 + gate)]
+                meantemp = round(np.mean(temp2))
+                y2s.append(meantemp)
+            y2s = np.unique(y2s) 
+            for i in range(xs.shape[0]):
+                temp1 = xs[i]
+                temp2 = xs[(xs >= temp1 - gate) & (xs <= temp1 + gate)]
+                meantemp = round(np.mean(temp2))
+                x2s.append(meantemp)
+            x2s = np.unique(x2s) 
+            return x2s,y2s
+    
 class xProjection(PlotWidget):
     def __init__(self, parent=None, background='w', plotItem=None, **kargs):
         super().__init__(parent, background, plotItem, **kargs)
