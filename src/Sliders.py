@@ -158,8 +158,8 @@ class slider3(QWidget):#Y
 
     def changeSlider(self):
         self.slValue.setText(str(self.sl.value()))
-        if Fitter.Fits.fitbool == True:
-            Fitter.Fits.changeFitplots(self.sl.value(), isX = False)
+        if Fitter.fitbool == True:
+            Fitter.changeFitplots(self.sl.value(), isX = False)
 
     
     def returnValue(self):
@@ -204,8 +204,8 @@ class slider4(QWidget):#X
 
     def changeSlider(self):
         self.slValue.setText(str(self.sl.value()))
-        if Fitter.Fits.fitbool == True:
-            Fitter.Fits.changeFitplots(self.sl.value(), isX = True)
+        if Fitter.fitbool == True:
+            Fitter.changeFitplots(self.sl.value(), isX = True)
     
     def returnValue(self):
         return(int(self.slValue.text()))

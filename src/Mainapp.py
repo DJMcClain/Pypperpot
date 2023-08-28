@@ -48,13 +48,15 @@ class MainWindow(QMainWindow):
 
 #button classes to be started
 
-        fit = QPushButton('Fit')
+        multiFit = QPushButton('Multi Fit (Max 8 peaks)')
+        pbpFit = QPushButton('Peak-By-Peak Fit')
         self.handfit = QPushButton('Hand Fit')
         
 #field class to be defined
 
 #Connect your fields to functions
-        fit.clicked.connect(Fitter.Fits.on_Fit_clicked)
+        multiFit.clicked.connect(Fitter.MultiFits.on_MultiFit_clicked)
+        pbpFit.clicked.connect(Fitter.MultiFits.on_pbpFit_clicked)
         self.handfit.clicked.connect(self.on_Hand_clicked)
 
 #Set Highest layer layout and work down
@@ -68,7 +70,8 @@ class MainWindow(QMainWindow):
         self.layoutV1.addWidget(self.MskFields)
 
         self.layoutV1.addLayout(self.layoutH10)
-        self.layoutH10.addWidget(fit)
+        self.layoutH10.addWidget(multiFit)
+        self.layoutH10.addWidget(pbpFit)
         self.layoutH10.addWidget(self.handfit)   
 
     def changeFitplots(self,value):

@@ -311,10 +311,10 @@ class ImageReader(QMainWindow):
     
         y1s = np.array(y1s)
         x1s = np.array(x1s)
-        x2s, y2s = ImageReader.cutdown(x1s,y1s,  math.ceil(ImageData.d/2), x2s,y2s)
+        x2s, y2s = ImageReader.cutdown(x1s,y1s,  math.ceil(ImageData.d/2))
         ImageData.y3s = []
         ImageData.x3s = []
-        ImageData.x3s, ImageData.y3s = ImageReader.cutdown(x2s,y2s,  math.ceil(ImageData.d/2), ImageData.x3s,ImageData.y3s)
+        ImageData.x3s, ImageData.y3s = ImageReader.cutdown(x2s,y2s,  math.ceil(ImageData.d/2))
         ImageFields.ImFields.ypeaksIn.setText(f'{ImageData.y3s.shape[0]}')
         ImageFields.ImFields.xpeaksIn.setText(f'{ImageData.x3s.shape[0]}')
         locs2 =[]
@@ -332,20 +332,24 @@ class ImageReader(QMainWindow):
         ImageReader.p4view.addItem(ImageReader.img2)
         ImageReader.p4view.addItem(ImageData.p4dots1)
 
-    def cutdown( xs, ys, gate, x2s, y2s):
-            for i in range(ys.shape[0]):
-                temp1 = ys[i]
-                temp2 = ys[(ys >= temp1 - gate) & (ys <= temp1 + gate)]
-                meantemp = round(np.mean(temp2))
-                y2s.append(meantemp)
-            y2s = np.unique(y2s) 
-            for i in range(xs.shape[0]):
-                temp1 = xs[i]
-                temp2 = xs[(xs >= temp1 - gate) & (xs <= temp1 + gate)]
-                meantemp = round(np.mean(temp2))
-                x2s.append(meantemp)
-            x2s = np.unique(x2s) 
-            return x2s,y2s
+    def cutdown( xs, ys, gate):
+        arr = np.copy(ys)
+        for i in range(arr.shape[0]):
+            temp1 = arr[i]
+            temp2 = arr[(arr >= temp1 - gate) & (arr <= temp1 + gate)]
+            meantemp = round(np.mean(temp2))
+            arr[(arr >= temp1 - gate) & (arr <= temp1 + gate)] = meantemp
+        arr = np.unique(arr)
+        y2s = np.copy(arr)
+        arr = np.copy(xs)
+        for i in range(arr.shape[0]):
+            temp1 = arr[i]
+            temp2 = arr[(arr >= temp1 - gate) & (arr <= temp1 + gate)]
+            meantemp = round(np.mean(temp2))
+            arr[(arr >= temp1 - gate) & (arr <= temp1 + gate)] = meantemp
+        arr = np.unique(arr)
+        x2s = np.copy(arr) 
+        return x2s,y2s
     
 class xProjection(PlotWidget):
     def __init__(self, parent=None, background='w', plotItem=None, **kargs):
@@ -366,7 +370,6 @@ class yProjection(PlotWidget):
         self.temperature = np.array([30,32,34,32,33,31,29,32,35,45])
         self.gpen = pg.mkPen(color=(0, 255, 0))
         self.plot(self.temperature, self.hour, pen = self.gpen)
-
 
     
 class ImagePlot2(pg.ImageView):
