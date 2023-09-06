@@ -390,11 +390,20 @@ class PeakByPeakFits():
         #     for j in range(MultiFits.n_holes):
         #         locs2.append([i*ImageData.d-ImageData.d*(MultiFits.n_holes-1)/2,j*ImageData.d-(ImageData.d*(ImageData.n_holes-1))/2])
         # locs2 = np.array(locs2).T
+        #FitterFunc(x2s, y2s, spot2, holes, d, image, pixpermm, mask_to_screen, windowfrac, sigL, hole_err = 0)
+        spot2, holes = PeakByPeakFits.Mapping()
+        # TODO TEMPORARY, add controls for window fraction and sigL
+        sigL = 0.05
+        windowfrac = 2
+
+        intX, sterxs, hole_x, xps, xs, xperr, stdx, intY, sterys, hole_y, yps, yperr, ys, stdy, mu4xs, mu4ys = PeakByPeakFits.FitterFunc(ImageData.x3s,ImageData.y3s, spot2, holes,windowfrac, sigL)
+        emitX, emitY, emitXerr, emitYerr = PeakByPeakFits.EmittanceFunction(intX, sterxs, hole_x, xps, xs, xperr, stdx,mu4xs, intY, sterys, hole_y, yps, yperr, ys, stdy, mu4ys, sigL)
+
+        ImageData.resultsdf = pd.DataFrame({'Mask':'name','EmitX':emitX, 'EmitY':emitY, 'EmitXerr':emitXerr, 'EmitYerr':emitYerr}, index = [0])
+                    
         
-        yprojInt,yprojMean,yprojSig,yprojX = MultiFits.fitter_func(ImageData.y3s,ImageData.x3s, ImageData.num_peaks_y,ImageData.imgData, math.ceil(ImageData.d/2), False, False)
-        xprojInt,xprojMean,xprojSig,xprojY = MultiFits.fitter_func(ImageData.x3s,ImageData.y3s, ImageData.num_peaks_x,ImageData.imgData, math.ceil(ImageData.d/2), True, False)
-        MultiFits.Xprojdf = pd.DataFrame({'Ypos': xprojY, 'Mean': xprojMean, 'Sig': xprojSig,'Int': xprojInt})
-        MultiFits.Yprojdf = pd.DataFrame({'Xpos': yprojX, 'Mean': yprojMean, 'Sig': yprojSig,'Int': yprojInt})
+        MultiFits.Xprojdf = pd.DataFrame({'Ypos': hole_y, 'Mean': xs, 'Sig': stdx,'Int': intX})
+        MultiFits.Yprojdf = pd.DataFrame({'Xpos': hole_x, 'Mean': ys, 'Sig': stdy,'Int': intY})
 
         #Remapping
         Meanx = []
@@ -416,7 +425,7 @@ class PeakByPeakFits():
         Meanx = np.array(Meanx)
         Intx = np.array(Intx)
         Sigx = np.array(Sigx)
-        # MultiFits.locsdf = pd.DataFrame({'X':locs2[0]+ImageData.x_offset, 'Y':locs2[1]+ImageData.y_offset})
+
         templocs = ImageData.locsdf[(ImageData.locsdf.X > min_x-ImageData.d/2) & (ImageData.locsdf.X < max_x+ImageData.d/2)]
         templocs = templocs[(ImageData.locsdf.Y > min_y-ImageData.d/2) & (ImageData.locsdf.Y < max_y+ImageData.d/2)]
         print(templocs)
@@ -425,19 +434,21 @@ class PeakByPeakFits():
         print(f'Sigx,{Sigx.shape[0]}')
         print(f'Intx,{Intx.shape[0]}')
         print(f'templocs.Y.to_numpy(),{templocs.Y.to_numpy().shape[0]}')
-        print(f'yprojMean, {len(yprojMean)}')
-        print(f'yprojSig,{len(yprojSig)}')
-        print(f'yprojInt {len(yprojInt)}')
+        print(f'yprojMean, {len(ys)}')
+        print(f'yprojSig,{len(stdy)}')
+        print(f'yprojInt {len(intY)}')
         MultiFits.projectionsdf = pd.DataFrame({'HoleX': templocs.X.to_numpy(),
                                            'MeanX': Meanx,
                                            'SigX':  Sigx,
                                            'IntX':  Intx,
                                            'HoleY': templocs.Y.to_numpy(), 
-                                           'MeanY': yprojMean, 
-                                           'SigY':  yprojSig,
-                                           'IntY':  yprojInt})
+                                           'MeanY': ys, 
+                                           'SigY':  stdy,
+                                           'IntY':  intY})
+        #output resultsdf as header, projectionsdf as file body
         ImageData.ImageReader.slY.setValue(4)
         ImageData.ImageReader.slX.setValue(4)
+        print(ImageData.resultsdf())
         return
   
     def get_ordered_list(points, x, y):
@@ -452,13 +463,13 @@ class PeakByPeakFits():
         for x in ImageData.x3s:
             for y in ImageData.y3s:
                 spots.append([x,y])
-            for x in np.unique(locs3[0]):
-                for y in np.unique(locs3[1]):
-                    holes.append([x,y])
-                    spots = np.array(spots)
+        for x in np.unique(locs3[0]):
+            for y in np.unique(locs3[1]):
+                holes.append([x,y])
+                spots = np.array(spots)
         holes = np.array(holes)
-        ordered_spots = MultiFits.get_ordered_list(spots, ImageData.x_offset,  ImageData.y_offset)#order by distance away from center
-        ordered_holes = MultiFits.get_ordered_list(holes,  ImageData.x_offset,  ImageData.y_offset)
+        ordered_spots = PeakByPeakFits.get_ordered_list(spots, ImageData.x_offset,  ImageData.y_offset)#order by distance away from center
+        ordered_holes = PeakByPeakFits.get_ordered_list(holes,  ImageData.x_offset,  ImageData.y_offset)
         ordered_spots = np.array(ordered_spots)
         ordered_holes = np.array(ordered_holes)
         spot2 = ordered_spots#[:4]
@@ -512,7 +523,12 @@ class PeakByPeakFits():
         ster = stdv / np.sqrt(total)
         return total, mean, stdv, ster
 
-    def FitterFunc(x2s, y2s, spot2, holes, d, image, pixpermm, mask_to_screen, windowfrac, sigL, hole_err = 0):
+    def FitterFunc(x2s, y2s, spot2, holes, windowfrac, sigL, hole_err = 0):
+        d = ImageData.d 
+        image = ImageData.imgData
+        pixpermm = ImageData.pixpermm
+        mask_to_screen = ImageData.mask_to_screen
+
         pixs = math.ceil(d/windowfrac)
         xs = []
         ys = []
@@ -792,18 +808,14 @@ class PeakByPeakFits():
 
         return intX, sterxs, hole_x, xps, xs, xperr, stdx, intY, sterys, hole_y, yps, yperr, ys, stdy, mu4xs, mu4ys
 
-    def EmittanceFunction(intX, sterxs, hole_x, xps, xs, xperr, stdx, intY, sterys, hole_y, yps, yperr, ys, stdy, image, pixpermm, mask_to_screen, sigL):
+    def EmittanceFunction(intX, sterxs, hole_x, xps, xs, xperr, stdx, mu4xs, intY, sterys, hole_y, yps, yperr, ys, stdy, mu4ys, sigL):
+        pixpermm = ImageData.pixpermm
+        mask_to_screen = ImageData.mask_to_screen
+        image = ImageData.imgData
+
         x_offset = (image.shape[1])/2
         y_offset = (image.shape[0])/2#px
-        plt.figure(figsize=(9,6))
-        plt.errorbar((xs-x_offset)/pixpermm,xps, xerr = sterxs/pixpermm, yerr = xperr, fmt = 'o',label = 'Horizontal Phase Space', capsize = 3, markeredgewidth=1)
-        plt.errorbar((ys-y_offset)/pixpermm,yps, xerr = sterys/pixpermm, yerr = yperr,fmt ='o',label = 'Vertical Phase Space', capsize = 3, markeredgewidth=1)
-        plt.xlabel('X (mm)')
-        plt.ylabel("X' (mrad)")
-        plt.axhline(0,c='k')
-        plt.axvline(0,c='k')
-        plt.legend(loc = 'best')
-        plt.show()
+
         meanXtot2 = 1/np.sum(intX)*np.sum(hole_x*intX)
         meanXp2 = 1/np.sum(intX)*np.sum(xps*intX)
         meanYtot2 = 1/np.sum(intY)*np.sum(hole_y*intY)
@@ -811,7 +823,7 @@ class PeakByPeakFits():
 
         exp_x2 =  np.sum(intX * (hole_x - meanXtot2)**2/pixpermm**2)/np.sum((intX))#mm
         exp_xp2 = np.sum(intX * ((np.arctan(stdx/(mask_to_screen*pixpermm))*1000)**2+(xps - meanXp2)**2))/np.sum((intX))#mrad
-        exp_xxp = ((np.sum(intX*hole_x/pixpermm*xps)-(np.sum(intX)*meanXp2*meanXtot2))/(pixpermm))/np.sum((intX))#mmmrad
+        exp_xxp = ((np.sum(intX*hole_x*xps)-(np.sum(intX)*meanXp2*meanXtot2))/(pixpermm))/np.sum((intX))#mmmrad
         emitX = np.sqrt(exp_x2 * exp_xp2 - exp_xxp**2)
         emitXerr = PeakByPeakFits.EmittanceUncertaintyFunc(intX, sterxs, hole_x, xps, xs, xperr, stdx, meanXtot2, meanXp2, exp_x2, exp_xp2, exp_xxp, mask_to_screen, sigL, mu4xs, emitX, pixpermm)
         exp_y2 =  np.sum(intY * (hole_y - meanYtot2)**2/pixpermm**2)/np.sum((intY))#mm
@@ -819,6 +831,16 @@ class PeakByPeakFits():
         exp_yyp = ((np.sum(intY*hole_y*yps)-(np.sum(intY)*meanYp2*meanYtot2))/(pixpermm))/np.sum((intY))#mmmrad
         emitY = np.sqrt(exp_y2 * exp_yp2 - exp_yyp**2)
         emitYerr = PeakByPeakFits.EmittanceUncertaintyFunc(intY, sterys, hole_y, yps, ys, yperr, stdy, meanYtot2, meanYp2, exp_y2, exp_yp2, exp_yyp, mask_to_screen, sigL, mu4ys, emitY,pixpermm)
+        plt.figure(figsize=(9,6))
+        plt.errorbar((xs-x_offset)/pixpermm,xps, xerr = sterxs/pixpermm, yerr = xperr, fmt = 'o',label = f'Horizontal Phase Space: $\epsilon_x$ = {emitX:.3f} +/- {emitXerr:.3f} $\pi$*mm*mrad', capsize = 3, markeredgewidth=1)
+        plt.errorbar((ys-y_offset)/pixpermm,yps, xerr = sterys/pixpermm, yerr = yperr,fmt ='o',label = f'Vertical Phase Space: $\epsilon_y$ = {emitY:.3f} +/- {emitYerr:.3f} $\pi$*mm*mrad', capsize = 3, markeredgewidth=1)
+        plt.xlabel('X (mm)')
+        plt.ylabel("X' (mrad)")
+        plt.axhline(0,c='k')
+        plt.axvline(0,c='k')
+        plt.legend()
+        plt.show()
+        
         return emitX, emitY, emitXerr, emitYerr
 
     def EmittanceUncertaintyFunc(intX, sterxs, hole_x, xps, xs, xperr, stdx, meanXtot, meanXp, exp_x2, exp_xp2, exp_xxp, L, sigL, mu4x, eps_x,pixpermm, hole_err = 0):
@@ -829,12 +851,12 @@ class PeakByPeakFits():
         sigexp_x2 = exp_x2 * np.sqrt(1/ np.sum(intX) + (sigSig1 / (np.sum(intX * (hole_x - meanXtot)**2)/pixpermm**2))**2)#mm good nan here
 
         #sig_<x'^2> # this looks ok?
-        print(f'xperr:{xperr}')
+        # print(f'xperr:{xperr}')
         sigxpbari = 1000* (xs - hole_x)/(pixpermm * L) * np.sqrt((stdx**2+hole_err**2 - 2 * scipy.stats.pearsonr(xs,hole_x)[0]*stdx*hole_err)/(xs-hole_x)**2 + sigL**2/L**2)/(1+((xs - hole_x)/(pixpermm * L))**2)#mrad good
-        print(f'sigxpbari:{sigxpbari}')
+        # print(f'sigxpbari:{sigxpbari}')
         #significantly better
         sigxpbari = xperr
-        print(f'sigxpbari new:{sigxpbari}')
+        # print(f'sigxpbari new:{sigxpbari}')
         sigxpbar = meanXp * np.sqrt(1/np.sum(intX) + np.sum(intX**2*xps**2*(1/intX + sigxpbari**2/xps**2))/(np.sum(intX*xps)**2))#mrad
         sigstd = np.sqrt((mu4x - (intX-3)/(intX-1)*stdx**4)/intX)/(2*stdx)#pix
         #check below, big issue #thousands?

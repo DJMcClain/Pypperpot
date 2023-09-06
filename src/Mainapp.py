@@ -56,7 +56,7 @@ class MainWindow(QMainWindow):
 
 #Connect your fields to functions
         multiFit.clicked.connect(Fitter.MultiFits.on_MultiFit_clicked)
-        pbpFit.clicked.connect(Fitter.MultiFits.on_pbpFit_clicked)
+        pbpFit.clicked.connect(Fitter.PeakByPeakFits.on_pbpFit_clicked)
         self.handfit.clicked.connect(self.on_Hand_clicked)
 
 #Set Highest layer layout and work down
