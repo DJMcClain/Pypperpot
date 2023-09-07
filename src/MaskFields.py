@@ -94,10 +94,10 @@ class MaskWidget(QMainWindow):
         file.close()
 
     def on_SaveMa_clicked(self):
-        saveMaskName = QFileDialog.getSaveFileName(caption="Save Mask", directrory=path, filter="*.csv")
+        saveMaskName = QFileDialog.getSaveFileName(caption="Save Mask", filter="*.csv")
         file = open(saveMaskName[0], 'w')
         writer =csv.writer(file)
-        writer.writwrow([self.numHoles.text(), self.diamIn.text(), self.sepIn.text(),self.Mask2ScrnIn.text(), self.Calibration.text()])
+        writer.writerow([self.numHoles.text(), self.diamIn.text(), self.sepIn.text(),self.Mask2ScrnIn.text(), self.Calibration.text()])
         file.close()
 class mask2Scrn_read(QLineEdit):
     def __init__(self):
