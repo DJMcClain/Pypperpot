@@ -32,8 +32,8 @@ class Handfitting(QWidget):
         super().__init__()
         self.Xprojdf = Xprojdf
         self.Yprojdf = Yprojdf
-        self.imgData = imgData
-        self.threshold = threshold
+        ImageData.imgData = imgData
+        ImageData.ImageReader.threshold = threshold
         self.d = d
         self.x3s = x3s
         self.y3s = y3s
@@ -53,8 +53,8 @@ class Handfitting(QWidget):
         self.fit_peak = FitPeakRead()
         self.fit = QPushButton('Fit')
         self.mainwindow = Mainapp()
-        self.plota = PlotWidget()
-        self.plota.setBackground('w')
+        ImageData.ImageReader.plota = PlotWidget()
+        ImageData.ImageReader.plota.setBackground('w')
 
         # self.central_widget = QWidget() # A QWidget to work as Central Widget
         self.layoutH0 = QHBoxLayout() # Main window
@@ -115,7 +115,7 @@ class Handfitting(QWidget):
         self.layoutH8.addWidget(QLabel('Peak Offset'))
         self.layoutH8.addWidget(self.peakOffset)
         self.layoutV0.addWidget(self.fit)
-        self.layoutV1.addWidget(self.plota)
+        self.layoutV1.addWidget(ImageData.ImageReader.plota)
 
 
 
@@ -154,80 +154,80 @@ class Handfitting(QWidget):
         num_peaks = int(self.num_peaks.text())
         peak_2_fit = int(self.fit_peak.text())
         
-        # self.imgData, self.threshold, self.d, self.x3s, self.y3s = self.mainwindow.returnImageData()
-        self.plota.clear()
+        # ImageData.imgData, ImageData.ImageReader.threshold, self.d, self.x3s, self.y3s = self.mainwindow.returnImageData()
+        ImageData.ImageReader.plota.clear()
         
         off_peaks = [num_projection]
         # print(off_peaks)
         print(self.projectiondf.head())
         self.projectiondf.drop(off_peaks)
-        self.x_offset = self.imgData.shape[0]/2
-        self.y_offset = self.imgData.shape[1]/2
+        self.x_offset = ImageData.imgData.shape[0]/2
+        self.y_offset = ImageData.imgData.shape[1]/2
 
         for peaknum_start in off_peaks:
             if isX == True:
                 self.positions = self.projectiondf.Ypos[peaknum_start]
-                guess1 = [integral, self.y3s[peak_2_fit],sigma,self.threshold]
+                guess1 = [integral, self.y3s[peak_2_fit],sigma,ImageData.ImageReader.threshold]
                 cut1 = self.y3s[peak_2_fit] - math.ceil(self.d/2)
                 cut2 = self.y3s[peak_2_fit] + math.ceil(self.d/2)
                 arr2 = self.x3s
             else:
                 self.positions = self.projectiondf.Xpos[peaknum_start]
-                guess1 = [integral, self.x3s[peak_2_fit],sigma, self.threshold]
+                guess1 = [integral, self.x3s[peak_2_fit],sigma, ImageData.ImageReader.threshold]
                 cut1 = self.x3s[peak_2_fit] - math.ceil(self.d/2)
                 cut2 = self.x3s[peak_2_fit] + math.ceil(self.d/2)
                 arr2 = self.y3s
 
-            data = np.array(self.imgData[:, self.positions- math.ceil(self.d/2):self.positions+ math.ceil(self.d/2)])
+            data = np.array(ImageData.imgData[:, self.positions- math.ceil(self.d/2):self.positions+ math.ceil(self.d/2)])
             temp = np.arange(data.shape[0])
             flim = np.arange(temp.min()-1, temp.max(),1)
             for i in range(temp.shape[0]):
                 temp[i] = sum(data[i])
-            self.plota.plot(flim,temp, pen = self.ppen)
+            ImageData.ImageReader.plota.plot(flim,temp, pen = self.ppen)
             errfunc1 = lambda p, x, y: (self.mainwindow.gaussian(x, *p) - y)**2
             optim1, success = optimize.leastsq(errfunc1, guess1[:], args=(flim[cut1:cut2], temp[cut1:cut2]))
-            self.plota.plot(flim[cut1:cut2], self.mainwindow.gaussian(flim[cut1:cut2], *optim1), pen = self.hfpen, label = 'Hand Fit')
+            ImageData.ImageReader.plota.plot(flim[cut1:cut2], self.mainwindow.gaussian(flim[cut1:cut2], *optim1), pen = self.hfpen, label = 'Hand Fit')
             if num_peaks <= 1:
                 print('peak already plotted')
             elif num_peaks == 2:
                 errfunc2 = lambda p, x, y: (self.mainwindow.two_gaussians(x, *p) - y)**2
-                guess = [18000, arr2[0], 5, 18000, arr2[1], 5, self.threshold]
+                guess = [18000, arr2[0], 5, 18000, arr2[1], 5, ImageData.ImageReader.threshold]
                 optim2, success2 = optimize.leastsq(errfunc2, guess[:], args=(flim, temp))
-                self.plota.plot(flim, self.mainwindow.two_gaussians(flim, *optim2),pen = self.fpen, label='fit of 2 Gaussians')
+                ImageData.ImageReader.plota.plot(flim, self.mainwindow.two_gaussians(flim, *optim2),pen = self.fpen, label='fit of 2 Gaussians')
             elif num_peaks == 3:
                 errfunc3 = lambda p, x, y: (self.mainwindow.three_gaussians(x, *p) - y)**2
-                guess = [18000, arr2[0], 5, 18000, arr2[1], 5,55000, arr2[2],5, self.threshold]
+                guess = [18000, arr2[0], 5, 18000, arr2[1], 5,55000, arr2[2],5, ImageData.ImageReader.threshold]
                 optim2, success2 = optimize.leastsq(errfunc3, guess[:], args=(flim, temp))
-                self.plota.plot(flim, self.mainwindow.three_gaussians(flim, *optim2),pen = self.fpen, label='fit of 3 Gaussians')
+                ImageData.ImageReader.plota.plot(flim, self.mainwindow.three_gaussians(flim, *optim2),pen = self.fpen, label='fit of 3 Gaussians')
             elif num_peaks == 4:
                 errfunc4 = lambda p, x, y: (self.mainwindow.four_gaussians(x, *p) - y)**2
-                guess = [18000, arr2[0], 0.25, 18000, arr2[1], 5,55000, arr2[2],5,100000,arr2[3],5, self.threshold]
+                guess = [18000, arr2[0], 0.25, 18000, arr2[1], 5,55000, arr2[2],5,100000,arr2[3],5, ImageData.ImageReader.threshold]
                 optim2, success2 = optimize.leastsq(errfunc4, guess[:], args=(flim, temp))
-                self.plota.plot(flim, self.mainwindow.four_gaussians(flim, *optim2),pen = self.fpen, label='fit of 4 Gaussians')
+                ImageData.ImageReader.plota.plot(flim, self.mainwindow.four_gaussians(flim, *optim2),pen = self.fpen, label='fit of 4 Gaussians')
             elif num_peaks == 5:
                 errfunc5 = lambda p, x, y: (self.mainwindow.five_gaussians(x, *p) - y)**2
                 guess = [18000, arr2[0], 0.25, 18000, arr2[1], 5,55000, arr2[2],5,100000,arr2[3],5,
-                         120000,arr2[4],5, self.threshold]
+                         120000,arr2[4],5, ImageData.ImageReader.threshold]
                 optim2, success2 = optimize.leastsq(errfunc5, guess[:], args=(flim, temp))
-                self.plota.plot(flim, self.mainwindow.five_gaussians(flim, *optim2),pen = self.fpen, label='fit of 5 Gaussians')
+                ImageData.ImageReader.plota.plot(flim, self.mainwindow.five_gaussians(flim, *optim2),pen = self.fpen, label='fit of 5 Gaussians')
             elif num_peaks == 6:
                 errfunc6 = lambda p, x, y: (self.mainwindow.six_gaussians(x, *p) - y)**2
                 guess = [18000, arr2[0], 0.25, 18000, arr2[1], 5,55000, arr2[2],5,100000,arr2[3],5,
-                         120000,arr2[4],5,150000,arr2[5],5, self.threshold]
+                         120000,arr2[4],5,150000,arr2[5],5, ImageData.ImageReader.threshold]
                 optim2, success = optimize.leastsq(errfunc6, guess[:], args=(flim, temp))
-                self.plota.plot(flim, self.mainwindow.six_gaussians(flim, *optim2),pen = self.fpen, label='fit of 6 Gaussians')
+                ImageData.ImageReader.plota.plot(flim, self.mainwindow.six_gaussians(flim, *optim2),pen = self.fpen, label='fit of 6 Gaussians')
             elif num_peaks == 7:
                 errfunc7 = lambda p, x, y: (self.mainwindow.seven_gaussians(x, *p) - y)**2
                 guess = [18000, arr2[0], 0.25, 18000, arr2[1], 5,55000, arr2[2],5,100000,arr2[3],5,
-                         120000,arr2[4],5,150000,arr2[5],5,120000,arr2[6],5, self.threshold]
+                         120000,arr2[4],5,150000,arr2[5],5,120000,arr2[6],5, ImageData.ImageReader.threshold]
                 optim2, success2 = optimize.leastsq(errfunc7, guess[:], args=(flim, temp))
-                self.plota.plot(flim, self.mainwindow.seven_gaussians(flim, *optim2),pen = self.fpen, label='fit of 7 Gaussians')
+                ImageData.ImageReader.plota.plot(flim, self.mainwindow.seven_gaussians(flim, *optim2),pen = self.fpen, label='fit of 7 Gaussians')
             elif num_peaks == 8:
                 errfunc8 = lambda p, x, y: (self.mainwindow.eight_gaussians(x, *p) - y)**2
                 guess = [18000, arr2[0], 0.25, 18000, arr2[1], 5,55000, arr2[2],5,100000,arr2[3],5,
-                         120000,arr2[4],5,150000,arr2[5],5,120000,arr2[6],5,18000, arr2[7],0.25, self.threshold]
+                         120000,arr2[4],5,150000,arr2[5],5,120000,arr2[6],5,18000, arr2[7],0.25, ImageData.ImageReader.threshold]
                 optim2, success2 = optimize.leastsq(errfunc8, guess[:], args=(flim, temp))
-                self.plota.plot(flim, self.mainwindow.eight_gaussians(flim, *optim2),pen = self.fpen, label='fit of 8 Gaussians')
+                ImageData.ImageReader.plota.plot(flim, self.mainwindow.eight_gaussians(flim, *optim2),pen = self.fpen, label='fit of 8 Gaussians')
             # print(self.positions)
             self.projectiondf.Int[peaknum_start + peak_2_fit] = optim1[0]
             self.projectiondf.Mean[peaknum_start + peak_2_fit] = optim1[1]

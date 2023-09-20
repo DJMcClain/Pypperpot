@@ -22,6 +22,7 @@ import ImageData
 import Mainapp
 import MaskFields
 import ImageFields
+import Fitter
 
 prombool = False
 threshbool = False
@@ -59,12 +60,12 @@ class slider1(QWidget):#Threshold
         s = int(self.slValue.text())
         self.sl.setValue(s)
         if threshbool == True:
-            ImageData.changeThreshold(self.returnValue())
+            ImageData.ImageReader.changeThreshold(self.returnValue())
 
     def changeSlider(self):
         self.slValue.setText(str(self.sl.value()))
         if threshbool == True:
-            ImageData.changeThreshold(self.returnValue())
+            ImageData.ImageReader.changeThreshold(self.returnValue())
 
     def returnValue(self):
         return(int(self.slValue.text()))
@@ -107,12 +108,12 @@ class slider2(QWidget):#Prominence
         s = int(self.slValue.text())
         self.sl.setValue(s)
         if prombool == True:
-            ImageData.changeProminence(self.returnValue())
+            ImageData.ImageReader.changeProminence(self.returnValue())
 
     def changeSlider(self):
         self.slValue.setText(str(self.sl.value()))
         if prombool == True:
-            ImageData.changeProminence(self.returnValue())
+            ImageData.ImageReader.changeProminence(self.returnValue())
 
     def returnValue(self):
         return(int(self.slValue.text()))
@@ -157,6 +158,9 @@ class slider3(QWidget):#Y
 
     def changeSlider(self):
         self.slValue.setText(str(self.sl.value()))
+        if Fitter.fitbool == True:
+            Fitter.changeFitplots(self.sl.value(), isX = False)
+
     
     def returnValue(self):
         return(int(self.slValue.text()))
@@ -200,6 +204,8 @@ class slider4(QWidget):#X
 
     def changeSlider(self):
         self.slValue.setText(str(self.sl.value()))
+        if Fitter.fitbool == True:
+            Fitter.changeFitplots(self.sl.value(), isX = True)
     
     def returnValue(self):
         return(int(self.slValue.text()))
