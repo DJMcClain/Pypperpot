@@ -226,6 +226,8 @@ class ImageReader():
     def csv_GSmatrix(path):
         data = np.genfromtxt(path[0], delimiter = ',') # convert image to 8-bit grayscale
         print(f'min:{data.min()}  max:{data.max()}')
+        data = data 
+        print(f'min:{data.min()}  max:{data.max()}')
         return data   
 
 class xProjection(PlotWidget):
