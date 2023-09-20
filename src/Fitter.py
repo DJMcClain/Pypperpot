@@ -151,14 +151,14 @@ class MultiFits(QMainWindow):
         h7, c7, w7,
 		h8, c8, w8,
 		offset):
-        return (gaussian(x, h1, c1, w1, offset) +
-            gaussian(x, h2, c2, w2, offset) +
-            gaussian(x, h3, c3, w3, offset) + 
-            gaussian(x, h4, c4, w4, offset) + 
-            gaussian(x, h5, c5, w5, offset) + 
-            gaussian(x, h6, c6, w6, offset) + 
-            gaussian(x, h7, c7, w7, offset) +
-            gaussian(x, h8, c8, w8, offset) +
+        return (MultiFits.gaussian(x, h1, c1, w1, offset) +
+            MultiFits.gaussian(x, h2, c2, w2, offset) +
+            MultiFits.gaussian(x, h3, c3, w3, offset) + 
+            MultiFits.gaussian(x, h4, c4, w4, offset) + 
+            MultiFits.gaussian(x, h5, c5, w5, offset) + 
+            MultiFits.gaussian(x, h6, c6, w6, offset) + 
+            MultiFits.gaussian(x, h7, c7, w7, offset) +
+            MultiFits.gaussian(x, h8, c8, w8, offset) +
             offset)
 
     def seven_gaussians(x, h1, c1, w1, 
@@ -169,13 +169,13 @@ class MultiFits(QMainWindow):
     		h6, c6, w6,
             h7, c7, w7,
     		offset):
-        return  (gaussian(x, h1, c1, w1, offset) +
-                gaussian(x, h2, c2, w2, offset) +
-                gaussian(x, h3, c3, w3, offset) + 
-                gaussian(x, h4, c4, w4, offset) + 
-                gaussian(x, h5, c5, w5, offset) + 
-                gaussian(x, h6, c6, w6, offset) + 
-                gaussian(x, h7, c7, w7, offset) +
+        return  (MultiFits.gaussian(x, h1, c1, w1, offset) +
+                MultiFits.gaussian(x, h2, c2, w2, offset) +
+                MultiFits.gaussian(x, h3, c3, w3, offset) + 
+                MultiFits.gaussian(x, h4, c4, w4, offset) + 
+                MultiFits.gaussian(x, h5, c5, w5, offset) + 
+                MultiFits.gaussian(x, h6, c6, w6, offset) + 
+                MultiFits.gaussian(x, h7, c7, w7, offset) +
                 offset)
 
     def six_gaussians(x, h1, c1, w1, 
@@ -185,12 +185,12 @@ class MultiFits(QMainWindow):
     		h5, c5, w5,
     		h6, c6, w6,
     		offset):
-        return (gaussian(x, h1, c1, w1, offset) +
-            gaussian(x, h3, c3, w3, offset) + 
-            gaussian(x, h4, c4, w4, offset) + 
-            gaussian(x, h2, c2, w2, offset) +
-            gaussian(x, h5, c5, w5, offset) + 
-            gaussian(x, h6, c6, w6, offset) + 
+        return (MultiFits.gaussian(x, h1, c1, w1, offset) +
+            MultiFits.gaussian(x, h3, c3, w3, offset) + 
+            MultiFits.gaussian(x, h4, c4, w4, offset) + 
+            MultiFits.gaussian(x, h2, c2, w2, offset) +
+            MultiFits.gaussian(x, h5, c5, w5, offset) + 
+            MultiFits.gaussian(x, h6, c6, w6, offset) + 
             offset)
 
     def five_gaussians(x, h1, c1, w1, 
@@ -199,11 +199,11 @@ class MultiFits(QMainWindow):
     		h4, c4, w4,
     		h5, c5, w5,
     		offset):
-        return (gaussian(x, h1, c1, w1, offset) +
-            gaussian(x, h2, c2, w2, offset) +
-            gaussian(x, h3, c3, w3, offset) + 
-            gaussian(x, h4, c4, w4, offset) + 
-            gaussian(x, h5, c5, w5, offset) + 
+        return (MultiFits.gaussian(x, h1, c1, w1, offset) +
+            MultiFits.gaussian(x, h2, c2, w2, offset) +
+            MultiFits.gaussian(x, h3, c3, w3, offset) + 
+            MultiFits.gaussian(x, h4, c4, w4, offset) + 
+            MultiFits.gaussian(x, h5, c5, w5, offset) + 
             offset)
 
     def four_gaussians(x, h1, c1, w1, 
@@ -211,26 +211,26 @@ class MultiFits(QMainWindow):
     		h3, c3, w3,
     		h4, c4, w4,
     		offset):
-        return (gaussian(x, h1, c1, w1, offset) +
-            gaussian(x, h2, c2, w2, offset) +
-            gaussian(x, h3, c3, w3, offset) + 
-            gaussian(x, h4, c4, w4, offset) + 
+        return (MultiFits.gaussian(x, h1, c1, w1, offset) +
+            MultiFits.gaussian(x, h2, c2, w2, offset) +
+            MultiFits.gaussian(x, h3, c3, w3, offset) + 
+            MultiFits.gaussian(x, h4, c4, w4, offset) + 
             offset)
     
     def three_gaussians(x, h1, c1, w1, 
     		h2, c2, w2, 
     		h3, c3, w3,
     		offset):
-        return (gaussian(x, h1, c1, w1, offset) +
-            gaussian(x, h2, c2, w2, offset) +
-            gaussian(x, h3, c3, w3, offset) + 
+        return (MultiFits.gaussian(x, h1, c1, w1, offset) +
+            MultiFits.gaussian(x, h2, c2, w2, offset) +
+            MultiFits.gaussian(x, h3, c3, w3, offset) + 
             offset) 
 
     def two_gaussians(x, h1, c1, w1, 
     		h2, c2, w2, 
     		offset):
-        return (gaussian(x, h1, c1, w1, offset) +
-            gaussian(x, h2, c2, w2, offset) + 
+        return (MultiFits.gaussian(x, h1, c1, w1, offset) +
+            MultiFits.gaussian(x, h2, c2, w2, offset) + 
             offset)
     
     def fitter_func(arr,arr2, num_peaks,img,pixs, isX, plot):
@@ -271,14 +271,14 @@ class MultiFits(QMainWindow):
                 # fig.colorbar(im,cax=cax, orientation='vertical')
 
             if num_peaks == 1:
-                errfunc1 = lambda p, x, y: (gaussian(x, *p) - y)**2
+                errfunc1 = lambda p, x, y: (MultiFits.gaussian(x, *p) - y)**2
                 guess = [18000, arr2[0], 5,ImageData.ImageReader.threshold]
                 optim, success = optimize.leastsq(errfunc1, guess[:], args=(flim, temp))
                 if plot ==True:
                     if isX == True:
-                        ImageData.ImageReader.plot2.plot(flim, gaussian(flim, *optim), pen = fpen, label='fit of Gaussian')
+                        ImageData.ImageReader.plot2.plot(flim, MultiFits.gaussian(flim, *optim), pen = fpen, label='fit of Gaussian')
                     else:    
-                        ImageData.ImageReader.plot3.plot(gaussian(flim, *optim),flim, pen = fpen, label='fit of Gaussian')
+                        ImageData.ImageReader.plot3.plot(MultiFits.gaussian(flim, *optim),flim, pen = fpen, label='fit of Gaussian')
                     # ax[0].plot(flim, gaussian(flim, *optim),c='red', label='fit of Gaussian')
             elif num_peaks == 2:
                 errfunc2 = lambda p, x, y: (MultiFits.two_gaussians(x, *p) - y)**2
