@@ -824,12 +824,12 @@ class PeakByPeakFits():
         exp_x2 =  np.sum(intX * (hole_x - meanXtot2)**2/pixpermm**2)/np.sum((intX))#mm
         exp_xp2 = np.sum(intX * ((np.arctan(stdx/(mask_to_screen*pixpermm))*1000)**2+(xps - meanXp2)**2))/np.sum((intX))#mrad
         exp_xxp = ((np.sum(intX*hole_x*xps)-(np.sum(intX)*meanXp2*meanXtot2))/(pixpermm))/np.sum((intX))#mmmrad
-        emitX = np.sqrt(exp_x2 * exp_xp2 - exp_xxp**2)
+        emitX = np.sqrt(exp_x2 * exp_xp2 - exp_xxp**2)/np.pi
         emitXerr = PeakByPeakFits.EmittanceUncertaintyFunc(intX, sterxs, hole_x, xps, xs, xperr, stdx, meanXtot2, meanXp2, exp_x2, exp_xp2, exp_xxp, mask_to_screen, sigL, mu4xs, emitX, pixpermm)
         exp_y2 =  np.sum(intY * (hole_y - meanYtot2)**2/pixpermm**2)/np.sum((intY))#mm
         exp_yp2 = np.sum(intY * ((np.arctan(stdy/(mask_to_screen*pixpermm))*1000)**2+(yps - meanYp2)**2))/np.sum((intY))#mrad
         exp_yyp = ((np.sum(intY*hole_y*yps)-(np.sum(intY)*meanYp2*meanYtot2))/(pixpermm))/np.sum((intY))#mmmrad
-        emitY = np.sqrt(exp_y2 * exp_yp2 - exp_yyp**2)
+        emitY = np.sqrt(exp_y2 * exp_yp2 - exp_yyp**2)/np.pi
         emitYerr = PeakByPeakFits.EmittanceUncertaintyFunc(intY, sterys, hole_y, yps, ys, yperr, stdy, meanYtot2, meanYp2, exp_y2, exp_yp2, exp_yyp, mask_to_screen, sigL, mu4ys, emitY,pixpermm)
         plt.figure(figsize=(9,6))
         plt.errorbar((xs-x_offset)/pixpermm,xps, xerr = sterxs/pixpermm, yerr = xperr, fmt = 'o',label = f'Horizontal Phase Space: $\epsilon_x$ = {emitX:.3f} +/- {emitXerr:.3f} $\pi$*mm*mrad', capsize = 3, markeredgewidth=1)
