@@ -437,18 +437,18 @@ class PeakByPeakFits():
         print(f'yprojMean, {len(ys)}')
         print(f'yprojSig,{len(stdy)}')
         print(f'yprojInt {len(intY)}')
-        MultiFits.projectionsdf = pd.DataFrame({'HoleX': templocs.X.to_numpy(),
-                                           'MeanX': Meanx,
-                                           'SigX':  Sigx,
-                                           'IntX':  Intx,
-                                           'HoleY': templocs.Y.to_numpy(), 
-                                           'MeanY': ys, 
-                                           'SigY':  stdy,
-                                           'IntY':  intY})
+        # MultiFits.projectionsdf = pd.DataFrame({'HoleX': templocs.X.to_numpy(),
+        #                                    'MeanX': Meanx,
+        #                                    'SigX':  Sigx,
+        #                                    'IntX':  Intx,
+        #                                    'HoleY': templocs.Y.to_numpy(), 
+        #                                    'MeanY': ys, 
+        #                                    'SigY':  stdy,
+        #                                    'IntY':  intY})
         #output resultsdf as header, projectionsdf as file body
         ImageData.ImageReader.slY.setValue(4)
         ImageData.ImageReader.slX.setValue(4)
-        print(ImageData.resultsdf())
+        # print(ImageData.resultsdf())
         return
   
     def get_ordered_list(points, x, y):
@@ -650,7 +650,7 @@ class PeakByPeakFits():
             ys.append(meany - tempy.shape[0]/2 + y)
             stdy.append(stdvy)
             hole_y.append(holey)
-            xps.append(np.arctan((meanx+x-tempx.shape[0]/2-holex)/(pixpermm * mask_to_screen))*1000)
+            xps.append(np.arctan((meanx+x-tempx.shape[0]/2-holex)/(pixpermm * mask_to_screen))*1000)#meanx+x-tempx.shape[0]/2
             xperr.append(np.abs(((meanx+x-tempx.shape[0]/2-holex)/(pixpermm * mask_to_screen))/(1+((meanx+x-tempx.shape[0]/2-holex)/(pixpermm * mask_to_screen))**2)*1000*np.sqrt((sterx**2+hole_err**2)/((meanx+x-tempx.shape[0]/2-holex)**2 + sigL**2/mask_to_screen**2))))
             yps.append(np.arctan((meany+y-tempy.shape[0]/2-holey)/(pixpermm * mask_to_screen))*1000)
             yperr.append(np.abs(((meany+y-tempy.shape[0]/2-holey)/(pixpermm * mask_to_screen))/(1+((meany+y-tempy.shape[0]/2-holey)/(pixpermm * mask_to_screen))**2)*1000*np.sqrt((stery**2+hole_err**2)/((meany+y-tempy.shape[0]/2-holey)**2 + sigL**2/mask_to_screen**2))))
@@ -822,18 +822,49 @@ class PeakByPeakFits():
         meanYp2 = 1/np.sum(intY)*np.sum(yps*intY)
 
         exp_x2 =  np.sum(intX * (hole_x - meanXtot2)**2/pixpermm**2)/np.sum((intX))#mm
-        exp_xp2 = np.sum(intX * ((np.arctan(stdx/(mask_to_screen*pixpermm))*1000)**2+(xps - meanXp2)**2))/np.sum((intX))#mrad
+        exp_xp2 = np.sum(intX * ((np.arctan(sterxs/(mask_to_screen*pixpermm))*1000)**2+(xps - meanXp2)**2))/np.sum((intX))#mrad #no longer std
         exp_xxp = ((np.sum(intX*hole_x*xps)-(np.sum(intX)*meanXp2*meanXtot2))/(pixpermm))/np.sum((intX))#mmmrad
+<<<<<<< Updated upstream
         emitX = np.sqrt(exp_x2 * exp_xp2 - exp_xxp**2)
+=======
+        emitX = np.sqrt(exp_x2 * exp_xp2 - exp_xxp**2)/np.pi
+
+        alphX = -exp_xxp / emitX * np.pi
+        betX = exp_x2 / emitX * np.pi
+        gamX = exp_xp2 / emitX * np.pi
+        print(f"alpha = {alphX}")
+        print(f"beta = {betX}")
+        ellipsexs = np.arange((min(xs)-x_offset)/pixpermm-.5, (max(xs)-x_offset)/pixpermm+.5, 0.025)
+        ellipse1x = (np.sqrt(betX * emitX*np.pi - ellipsexs**2)-alphX*ellipsexs)/betX
+        ellipse2x = (-np.sqrt(betX * emitX*np.pi - ellipsexs**2)-alphX*ellipsexs)/betX
+>>>>>>> Stashed changes
         emitXerr = PeakByPeakFits.EmittanceUncertaintyFunc(intX, sterxs, hole_x, xps, xs, xperr, stdx, meanXtot2, meanXp2, exp_x2, exp_xp2, exp_xxp, mask_to_screen, sigL, mu4xs, emitX, pixpermm)
         exp_y2 =  np.sum(intY * (hole_y - meanYtot2)**2/pixpermm**2)/np.sum((intY))#mm
-        exp_yp2 = np.sum(intY * ((np.arctan(stdy/(mask_to_screen*pixpermm))*1000)**2+(yps - meanYp2)**2))/np.sum((intY))#mrad
+        exp_yp2 = np.sum(intY * ((np.arctan(sterys/(mask_to_screen*pixpermm))*1000)**2+(yps - meanYp2)**2))/np.sum((intY))#mrad
         exp_yyp = ((np.sum(intY*hole_y*yps)-(np.sum(intY)*meanYp2*meanYtot2))/(pixpermm))/np.sum((intY))#mmmrad
+<<<<<<< Updated upstream
         emitY = np.sqrt(exp_y2 * exp_yp2 - exp_yyp**2)
         emitYerr = PeakByPeakFits.EmittanceUncertaintyFunc(intY, sterys, hole_y, yps, ys, yperr, stdy, meanYtot2, meanYp2, exp_y2, exp_yp2, exp_yyp, mask_to_screen, sigL, mu4ys, emitY,pixpermm)
         plt.figure(figsize=(9,6))
         plt.errorbar((xs-x_offset)/pixpermm,xps, xerr = sterxs/pixpermm, yerr = xperr, fmt = 'o',label = f'Horizontal Phase Space: $\epsilon_x$ = {emitX:.3f} +/- {emitXerr:.3f} $\pi$*mm*mrad', capsize = 3, markeredgewidth=1)
         plt.errorbar((ys-y_offset)/pixpermm,yps, xerr = sterys/pixpermm, yerr = yperr,fmt ='o',label = f'Vertical Phase Space: $\epsilon_y$ = {emitY:.3f} +/- {emitYerr:.3f} $\pi$*mm*mrad', capsize = 3, markeredgewidth=1)
+=======
+        emitY = np.sqrt(exp_y2 * exp_yp2 - exp_yyp**2)/np.pi
+        alphY = -exp_yyp / emitY * np.pi
+        betY = exp_y2 / emitY * np.pi
+        gamY = exp_yp2 / emitY * np.pi
+        ellipseys = np.arange((min(ys)-y_offset)/pixpermm-.5, (max(ys)-y_offset)/pixpermm+.5, 0.025)
+        ellipse1y = (np.sqrt(betY * emitY*np.pi - ellipseys**2)-alphY*ellipseys)/betY
+        ellipse2y = (-np.sqrt(betY * emitY*np.pi - ellipseys**2)-alphY*ellipseys)/betY
+        emitYerr = PeakByPeakFits.EmittanceUncertaintyFunc(intY, sterys, hole_y, yps, ys, yperr, stdy, meanYtot2, meanYp2, exp_y2, exp_yp2, exp_yyp, mask_to_screen, sigL, mu4ys, emitY,pixpermm)
+        plt.figure(figsize=(9,6))
+        plt.errorbar((xs-x_offset)/pixpermm,xps, xerr = sterxs/pixpermm, yerr = xperr, fmt = 'o',label = f'Horizontal Phase Space: $\epsilon_x$ = {emitX:.3f} +/- {emitXerr:.3f} $\pi$*mm*mrad', capsize = 3, markeredgewidth=1)
+        plt.errorbar((ys-y_offset)/pixpermm,yps, xerr = sterys/pixpermm, yerr = yperr,fmt ='.',label = f'Vertical Phase Space: $\epsilon_y$ = {emitY:.3f} +/- {emitYerr:.3f} $\pi$*mm*mrad', capsize = 3, markeredgewidth=1)
+        plt.plot(ellipsexs,ellipse1x, c='tab:blue')
+        plt.plot(ellipsexs,ellipse2x, c='tab:blue')
+        plt.plot(ellipseys,ellipse1y, c='tab:orange')
+        plt.plot(ellipseys,ellipse2y, c='tab:orange')
+>>>>>>> Stashed changes
         plt.xlabel('X (mm)')
         plt.ylabel("X' (mrad)")
         plt.axhline(0,c='k')
@@ -852,21 +883,25 @@ class PeakByPeakFits():
 
         #sig_<x'^2> # this looks ok?
         # print(f'xperr:{xperr}')
-        sigxpbari = 1000* (xs - hole_x)/(pixpermm * L) * np.sqrt((stdx**2+hole_err**2 - 2 * scipy.stats.pearsonr(xs,hole_x)[0]*stdx*hole_err)/(xs-hole_x)**2 + sigL**2/L**2)/(1+((xs - hole_x)/(pixpermm * L))**2)#mrad good
+        sigxpbari = 1000* (xs - hole_x)/(pixpermm * L) * np.sqrt((sterxs**2+hole_err**2 - 2 * scipy.stats.pearsonr(xs,hole_x)[0]*sterxs*hole_err)/(xs-hole_x)**2 + sigL**2/L**2)/(1+((xs - hole_x)/(pixpermm * L))**2)#mrad good
         # print(f'sigxpbari:{sigxpbari}')
         #significantly better
         sigxpbari = xperr
+        print(f'SIGXPBARI ={sigxpbari}')
+        # print(f'differences = {sigxpbari - xperr}')
+        # sigxpbari = xperr#doesn't take into account mixing term
         # print(f'sigxpbari new:{sigxpbari}')
         sigxpbar = meanXp * np.sqrt(1/np.sum(intX) + np.sum(intX**2*xps**2*(1/intX + sigxpbari**2/xps**2))/(np.sum(intX*xps)**2))#mrad
+
         sigstd = np.sqrt((mu4x - (intX-3)/(intX-1)*stdx**4)/intX)/(2*stdx)#pix
         #check below, big issue #thousands?
         #major gains in losing 1000s
 #         sigsigL = np.abs(2*np.arctan(stdx / (pixpermm * L))*1000 *1000 *(stdx / (pixpermm * L)) *np.sqrt(sigstd**2/stdx**2+sigL**2/L**2)/(1+(stdx / (pixpermm * L))**2))
-        sigsigL = np.abs(2*np.arctan(stdx / (pixpermm * L)) *(stdx / (pixpermm * L)) *np.sqrt(sigstd**2/stdx**2+sigL**2/L**2)/(1+(stdx / (pixpermm * L))**2))
+        sigsigL = np.abs(2*np.arctan(sterxs / (pixpermm * L)) *(sterxs / (pixpermm * L)) *np.sqrt(sigstd**2/sterxs**2+sigL**2/L**2)/(1+(sterxs / (pixpermm * L))**2))
         sig_par22 = 2 * (xps - meanXp)*np.sqrt(sigxpbari **2 + sigxpbar**2)
 
         #no effect as expected
-        part1 = (np.arctan(stdx / (pixpermm * L))*1000)**2
+        part1 = (np.arctan(sterxs / (pixpermm * L))*1000)**2
 #         part1 = (np.arctan(stdx / (pixpermm * L)))**2
         part2 = (xps - meanXp)**2
         rho = scipy.stats.pearsonr(part1,part2)[0]
@@ -874,9 +909,9 @@ class PeakByPeakFits():
         lilsig = np.sqrt(sigsigL**2 + sig_par22**2 + 2*rho*sigsigL*sig_par22)
         #small gains in losing 1000
 #         sigSig2 = np.sqrt(np.sum(intX**2 * ((np.arctan(stdx / (pixpermm * L))*1000)**2 + (xps - meanXp)**2)**2 * (1/intX + (lilsig)**2/((np.arctan(stdx / (pixpermm * L))*1000)**2 + (xps - meanXp)**2)**2)))
-        sigSig2 = np.sqrt(np.sum(intX**2 * ((np.arctan(stdx / (pixpermm * L)))**2 + (xps - meanXp)**2)**2 * (1/intX + (lilsig)**2/((np.arctan(stdx / (pixpermm * L)))**2 + (xps - meanXp)**2)**2)))
+        sigSig2 = np.sqrt(np.sum(intX**2 * ((np.arctan(sterxs/ (pixpermm * L)))**2 + (xps - meanXp)**2)**2 * (1/intX + (lilsig)**2/((np.arctan(sterxs / (pixpermm * L)))**2 + (xps - meanXp)**2)**2)))
         #small losses in losing 1000
-        sigexp_xp2 = exp_xp2 * np.sqrt(1/np.sum(intX) + (sigSig2/np.sum((np.arctan(stdx / (pixpermm * L))*1000)**2 + (xps - meanXp)**2))**2)
+        sigexp_xp2 = exp_xp2 * np.sqrt(1/np.sum(intX) + (sigSig2/np.sum((np.arctan(sterxs/ (pixpermm * L))*1000)**2 + (xps - meanXp)**2))**2)
 #         sigexp_xp2 = exp_xp2 * np.sqrt(1/np.sum(intX) + (sigSig2/np.sum((np.arctan(stdx / (pixpermm * L)))**2 + (xps - meanXp)**2))**2)
 
         #sig_<xx'>^2
