@@ -825,6 +825,15 @@ class PeakByPeakFits():
         exp_xp2 = np.sum(intX * ((np.arctan(stdx/(mask_to_screen*pixpermm))*1000)**2+(xps - meanXp2)**2))/np.sum((intX))#mrad
         exp_xxp = ((np.sum(intX*hole_x*xps)-(np.sum(intX)*meanXp2*meanXtot2))/(pixpermm))/np.sum((intX))#mmmrad
         emitX = np.sqrt(exp_x2 * exp_xp2 - exp_xxp**2)/np.pi
+
+        alphX = -exp_xxp / emitX * np.pi
+        betX = exp_x2 / emitX * np.pi
+        gamX = exp_xp2 / emitX * np.pi
+        print(f"alpha = {alphX}")
+        print(f"beta = {betX}")
+        ellipsexs = np.arange((min(xs)-x_offset)/pixpermm-.3, (max(xs)-x_offset)/pixpermm+.3, 0.1)
+        ellipse1 = (np.sqrt(betX * emitX - ellipsexs**2)-alphX*ellipsexs)/betX
+        ellipse2 = (-np.sqrt(betX * emitX - ellipsexs**2)-alphX*ellipsexs)/betX
         emitXerr = PeakByPeakFits.EmittanceUncertaintyFunc(intX, sterxs, hole_x, xps, xs, xperr, stdx, meanXtot2, meanXp2, exp_x2, exp_xp2, exp_xxp, mask_to_screen, sigL, mu4xs, emitX, pixpermm)
         exp_y2 =  np.sum(intY * (hole_y - meanYtot2)**2/pixpermm**2)/np.sum((intY))#mm
         exp_yp2 = np.sum(intY * ((np.arctan(stdy/(mask_to_screen*pixpermm))*1000)**2+(yps - meanYp2)**2))/np.sum((intY))#mrad
@@ -834,6 +843,8 @@ class PeakByPeakFits():
         plt.figure(figsize=(9,6))
         plt.errorbar((xs-x_offset)/pixpermm,xps, xerr = sterxs/pixpermm, yerr = xperr, fmt = 'o',label = f'Horizontal Phase Space: $\epsilon_x$ = {emitX:.3f} +/- {emitXerr:.3f} $\pi$*mm*mrad', capsize = 3, markeredgewidth=1)
         plt.errorbar((ys-y_offset)/pixpermm,yps, xerr = sterys/pixpermm, yerr = yperr,fmt ='o',label = f'Vertical Phase Space: $\epsilon_y$ = {emitY:.3f} +/- {emitYerr:.3f} $\pi$*mm*mrad', capsize = 3, markeredgewidth=1)
+        plt.plot(ellipsexs,ellipse1, c='r')
+        plt.plot(ellipsexs,ellipse2, c='r')
         plt.xlabel('X (mm)')
         plt.ylabel("X' (mrad)")
         plt.axhline(0,c='k')
