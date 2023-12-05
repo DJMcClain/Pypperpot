@@ -478,7 +478,7 @@ class PeakByPeakFits():
         for spot in spot2:
             holedistx = np.abs(hole2.T[0] - spot[0])
             holedisty = np.abs(hole2.T[1] - spot[1])
-            holetempx = hole2[np.where(holedistx == np.min(holedistx))]
+            holetempx = hole2[np.where(holedistx == np.min(holedistx))]#this is tripping up in many hole cases
             holetempy = hole2[np.where(holedisty == np.min(holedisty))]
             for x in holetempx:
                 for y in holetempy:
@@ -824,9 +824,6 @@ class PeakByPeakFits():
         exp_x2 =  np.sum(intX * (hole_x - meanXtot2)**2/pixpermm**2)/np.sum((intX))#mm
         exp_xp2 = np.sum(intX * ((np.arctan(sterxs/(mask_to_screen*pixpermm))*1000)**2+(xps - meanXp2)**2))/np.sum((intX))#mrad #no longer std
         exp_xxp = ((np.sum(intX*hole_x*xps)-(np.sum(intX)*meanXp2*meanXtot2))/(pixpermm))/np.sum((intX))#mmmrad
-<<<<<<< Updated upstream
-        emitX = np.sqrt(exp_x2 * exp_xp2 - exp_xxp**2)
-=======
         emitX = np.sqrt(exp_x2 * exp_xp2 - exp_xxp**2)/np.pi
 
         alphX = -exp_xxp / emitX * np.pi
@@ -834,26 +831,18 @@ class PeakByPeakFits():
         gamX = exp_xp2 / emitX * np.pi
         print(f"alpha = {alphX}")
         print(f"beta = {betX}")
-        ellipsexs = np.arange((min(xs)-x_offset)/pixpermm-.5, (max(xs)-x_offset)/pixpermm+.5, 0.025)
+        ellipsexs = np.arange((min(xs)-x_offset)/pixpermm-2, (max(xs)-x_offset)/pixpermm+2, 0.05)
         ellipse1x = (np.sqrt(betX * emitX*np.pi - ellipsexs**2)-alphX*ellipsexs)/betX
         ellipse2x = (-np.sqrt(betX * emitX*np.pi - ellipsexs**2)-alphX*ellipsexs)/betX
->>>>>>> Stashed changes
         emitXerr = PeakByPeakFits.EmittanceUncertaintyFunc(intX, sterxs, hole_x, xps, xs, xperr, stdx, meanXtot2, meanXp2, exp_x2, exp_xp2, exp_xxp, mask_to_screen, sigL, mu4xs, emitX, pixpermm)
         exp_y2 =  np.sum(intY * (hole_y - meanYtot2)**2/pixpermm**2)/np.sum((intY))#mm
-        exp_yp2 = np.sum(intY * ((np.arctan(sterys/(mask_to_screen*pixpermm))*1000)**2+(yps - meanYp2)**2))/np.sum((intY))#mrad
+        exp_yp2 = np.sum((intY *(np.arctan(sterys/(mask_to_screen*pixpermm))*1000)**2+intY*(yps - meanYp2)**2))/np.sum((intY))#mrad
         exp_yyp = ((np.sum(intY*hole_y*yps)-(np.sum(intY)*meanYp2*meanYtot2))/(pixpermm))/np.sum((intY))#mmmrad
-<<<<<<< Updated upstream
-        emitY = np.sqrt(exp_y2 * exp_yp2 - exp_yyp**2)
-        emitYerr = PeakByPeakFits.EmittanceUncertaintyFunc(intY, sterys, hole_y, yps, ys, yperr, stdy, meanYtot2, meanYp2, exp_y2, exp_yp2, exp_yyp, mask_to_screen, sigL, mu4ys, emitY,pixpermm)
-        plt.figure(figsize=(9,6))
-        plt.errorbar((xs-x_offset)/pixpermm,xps, xerr = sterxs/pixpermm, yerr = xperr, fmt = 'o',label = f'Horizontal Phase Space: $\epsilon_x$ = {emitX:.3f} +/- {emitXerr:.3f} $\pi$*mm*mrad', capsize = 3, markeredgewidth=1)
-        plt.errorbar((ys-y_offset)/pixpermm,yps, xerr = sterys/pixpermm, yerr = yperr,fmt ='o',label = f'Vertical Phase Space: $\epsilon_y$ = {emitY:.3f} +/- {emitYerr:.3f} $\pi$*mm*mrad', capsize = 3, markeredgewidth=1)
-=======
         emitY = np.sqrt(exp_y2 * exp_yp2 - exp_yyp**2)/np.pi
         alphY = -exp_yyp / emitY * np.pi
         betY = exp_y2 / emitY * np.pi
         gamY = exp_yp2 / emitY * np.pi
-        ellipseys = np.arange((min(ys)-y_offset)/pixpermm-.5, (max(ys)-y_offset)/pixpermm+.5, 0.025)
+        ellipseys = np.arange((min(ys)-y_offset)/pixpermm-2, (max(ys)-y_offset)/pixpermm+2, 0.05)
         ellipse1y = (np.sqrt(betY * emitY*np.pi - ellipseys**2)-alphY*ellipseys)/betY
         ellipse2y = (-np.sqrt(betY * emitY*np.pi - ellipseys**2)-alphY*ellipseys)/betY
         emitYerr = PeakByPeakFits.EmittanceUncertaintyFunc(intY, sterys, hole_y, yps, ys, yperr, stdy, meanYtot2, meanYp2, exp_y2, exp_yp2, exp_yyp, mask_to_screen, sigL, mu4ys, emitY,pixpermm)
@@ -864,7 +853,6 @@ class PeakByPeakFits():
         plt.plot(ellipsexs,ellipse2x, c='tab:blue')
         plt.plot(ellipseys,ellipse1y, c='tab:orange')
         plt.plot(ellipseys,ellipse2y, c='tab:orange')
->>>>>>> Stashed changes
         plt.xlabel('X (mm)')
         plt.ylabel("X' (mrad)")
         plt.axhline(0,c='k')
@@ -874,7 +862,7 @@ class PeakByPeakFits():
         
         return emitX, emitY, emitXerr, emitYerr
 
-    def EmittanceUncertaintyFunc(intX, sterxs, hole_x, xps, xs, xperr, stdx, meanXtot, meanXp, exp_x2, exp_xp2, exp_xxp, L, sigL, mu4x, eps_x,pixpermm, hole_err = 0):
+    def EmittanceUncertaintyFunc(intX, sterxs, hole_x, xps, xs, xperr, stdx, meanXtot, meanXp, exp_x2, exp_xp2, exp_xxp, L, sigL, mu4x, eps_x,pixpermm, hole_err = 0.0005):
         #sig_<x^2>
         sigxbar = meanXtot * np.sqrt(1/np.sum(intX)+np.sum(hole_x**2*intX**2*(1/intX+hole_err**2/hole_x**2))/np.sum(hole_x * intX)**2)#pix good
         sigxbar2 = 2 * meanXtot *sigxbar #pix **2 good
@@ -886,7 +874,7 @@ class PeakByPeakFits():
         sigxpbari = 1000* (xs - hole_x)/(pixpermm * L) * np.sqrt((sterxs**2+hole_err**2 - 2 * scipy.stats.pearsonr(xs,hole_x)[0]*sterxs*hole_err)/(xs-hole_x)**2 + sigL**2/L**2)/(1+((xs - hole_x)/(pixpermm * L))**2)#mrad good
         # print(f'sigxpbari:{sigxpbari}')
         #significantly better
-        sigxpbari = xperr
+        # sigxpbari = xperr
         print(f'SIGXPBARI ={sigxpbari}')
         # print(f'differences = {sigxpbari - xperr}')
         # sigxpbari = xperr#doesn't take into account mixing term
