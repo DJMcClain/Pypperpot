@@ -122,7 +122,7 @@ class ImageReader(QMainWindow):
         xpeaks=[]
         ypeaks=[]
         for row in ImageData.imgData:
-            peaks = scipy.signal.find_peaks(row, height = ImageReader.threshold/2, prominence = 8)
+            peaks = scipy.signal.find_peaks(row, height = ImageReader.threshold/3, prominence = 8)
             if peaks[0].shape[0] != 0:
                 for peak in peaks[0]:
                     xpeaks.append(peak)
@@ -225,7 +225,7 @@ class ImageReader(QMainWindow):
         xpeaks=[]
         ypeaks=[]
         for row in ImageData.imgData:
-            peaks = scipy.signal.find_peaks(row, height = ImageReader.threshold/2, prominence = value)
+            peaks = scipy.signal.find_peaks(row, height = ImageReader.threshold/3, prominence = value)
             if peaks[0].shape[0] != 0:
                 for peak in peaks[0]:
                     xpeaks.append(peak)

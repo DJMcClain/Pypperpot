@@ -455,7 +455,72 @@ class PeakByPeakFits():
         new_points = []
         new_points = sorted(points,key = lambda p: (p[0] - x)**2 + (p[1] - y)**2)
         return new_points
+    
+    def Binning(arr):
+        spotx = arr.T[0]-ImageData.x_offset
+        spoty = arr.T[1]-ImageData.y_offset
+        binx = np.copy(spotx)
+        biny = np.copy(spoty)
+        # print(np.unique(spotx).shape[0])
+        # print(np.mean(spotx[abs(spotx)==min(abs(spotx))]))
+        centerx = np.mean(spotx[abs(spotx)==min(abs(spotx))])
+        centery = np.mean(spoty[abs(spoty)==min(abs(spoty))])
+        # if n_holes%2 !=0: #if our hole number is odd
+        i = 0
+        j = 0
+        posSpotx = spotx[spotx >= 0]
+        posSpoty = spoty[spoty >= 0]
+        negSpotx = spotx[spotx < 0]
+        negSpoty = spoty[spoty < 0]
 
+        binx[spotx == centerx] = 0 
+        biny[spoty == centery] = 0 
+        tempx = min(posSpotx[posSpotx > centerx])#1
+        tempy = min(posSpoty[posSpoty > centery])#1
+        for spot in np.unique(posSpotx):
+            i+=1
+            binx[spotx == tempx] = i
+        #     print(tempx)
+            try:
+                tempx =  min(posSpotx[posSpotx > tempx])
+
+            except:
+                break
+
+        for spot in np.unique(posSpoty):
+            j+=1
+            biny[spoty == tempy] = j
+        #     print(tempy)
+            try:
+                tempy =  min(posSpoty[posSpoty > tempy])
+            except:
+                break
+            
+        tempx = max(negSpotx[negSpotx < centerx])#1
+        tempy = max(negSpoty[negSpoty < centery])#1  
+        i = 0
+        j = 0
+        for spot in np.unique(negSpotx):
+            i-=1
+            binx[spotx == tempx] = i
+        #     print(tempx)
+            try:
+                tempx = max(negSpotx[negSpotx < tempx])
+            except:
+                break
+            
+        for spot in np.unique(negSpoty):
+            j-=1
+            biny[spoty == tempy] = j
+        #     print(tempy)
+            try:
+                tempy = max(negSpoty[negSpoty < tempy])
+            except:
+                break
+        # min(spotx[spotx > 0 ])
+        # print(binx)
+        outarr = np.array([binx,biny]).T
+        return(outarr)
     def Mapping():
         locs3 = [ImageData.locsdf['X'], ImageData.locsdf['Y']]
         spots = [] 
@@ -474,46 +539,59 @@ class PeakByPeakFits():
         ordered_holes = np.array(ordered_holes)
         spot2 = ordered_spots#[:4]
         hole2 = ordered_holes#[:4]
-        holes = []
-        for spot in spot2:
-            holedistx = np.abs(hole2.T[0] - spot[0])
-            holedisty = np.abs(hole2.T[1] - spot[1])
-            holetempx = hole2[np.where(holedistx == np.min(holedistx))]#this is tripping up in many hole cases
-            holetempy = hole2[np.where(holedisty == np.min(holedisty))]
-            for x in holetempx:
-                for y in holetempy:
-                    if x[0] == y[0]:
-                        if x[1] == y[1]:
-                            holetemp = x
-                            break
-                        else:
-                            continue
-                    else:
-                        continue
-            holes.append(holetemp)    
-        holes = np.array(holes)
-        for spot in ordered_spots:#[4:]:
-            if spot.T[0] in spot2.T[0]:
-                tempx = holes.T[0][np.where(spot2.T[0] == spot.T[0])]
-            elif (spot.T[0] > np.max(spot2.T[0])):
-                  tempx = np.min(ordered_holes.T[0][ordered_holes.T[0]>np.max(holes.T[0])])
-            else:
-                  tempx = np.max(ordered_holes.T[0][ordered_holes.T[0]<np.min(holes.T[0])])
+        spot3 = PeakByPeakFits.Binning(spot2)
+        hole3 = PeakByPeakFits.Binning(hole2)
+        hole4 = np.copy(spot3)
+        spot4 = np.copy(spot3)
+        # print(hole2[(hole3.T[0]==0) & (hole3.T[1]==0)])
+        for i in np.unique(spot3).astype(int):
+            for j in np.unique(spot3).astype(int):
+                print(i,j)
+                try:
+                    spot4[(spot3.T[0]==i) & (spot3.T[1]==j)] = spot2[(spot3.T[0]==i) & (spot3.T[1]==j)]
+                    hole4[(spot3.T[0]==i) & (spot3.T[1]==j)] = hole2[(hole3.T[0]==i) & (hole3.T[1]==j)]
+                except:
+                    print("missing holes")
+        # holes = []
+        # for spot in spot2:
+        #     holedistx = np.abs(hole2.T[0] - spot[0])
+        #     holedisty = np.abs(hole2.T[1] - spot[1])
+        #     holetempx = hole2[np.where(holedistx == np.min(holedistx))]#this is tripping up in many hole cases
+        #     holetempy = hole2[np.where(holedisty == np.min(holedisty))]
+        #     for x in holetempx:
+        #         for y in holetempy:
+        #             if x[0] == y[0]:
+        #                 if x[1] == y[1]:
+        #                     holetemp = x
+        #                     break
+        #                 else:
+        #                     continue
+        #             else:
+        #                 continue
+        #     holes.append(holetemp)    
+        # holes = np.array(holes)
+        # for spot in ordered_spots:#[4:]:
+        #     if spot.T[0] in spot2.T[0]:
+        #         tempx = holes.T[0][np.where(spot2.T[0] == spot.T[0])]
+        #     elif (spot.T[0] > np.max(spot2.T[0])):
+        #           tempx = np.min(ordered_holes.T[0][ordered_holes.T[0]>np.max(holes.T[0])])
+        #     else:
+        #           tempx = np.max(ordered_holes.T[0][ordered_holes.T[0]<np.min(holes.T[0])])
 
-            if spot.T[1] in spot2.T[1]:
-                tempy = holes.T[1][np.where(spot2.T[1] == spot.T[1])]
-            elif (spot.T[1] > np.max(spot2.T[1])):
-                  tempy = np.min(ordered_holes.T[1][ordered_holes.T[1]>np.max(holes.T[1])])
-            else:
-                  tempy = np.max(ordered_holes.T[1][ordered_holes.T[1]<np.min(holes.T[1])])
+        #     if spot.T[1] in spot2.T[1]:
+        #         tempy = holes.T[1][np.where(spot2.T[1] == spot.T[1])]
+        #     elif (spot.T[1] > np.max(spot2.T[1])):
+        #           tempy = np.min(ordered_holes.T[1][ordered_holes.T[1]>np.max(holes.T[1])])
+        #     else:
+        #           tempy = np.max(ordered_holes.T[1][ordered_holes.T[1]<np.min(holes.T[1])])
 
-            tempx = np.unique(tempx) 
-            tempy = np.unique(tempy)
-            newhole = np.array([tempx[0],tempy[0]])
-            holes = np.append(holes, [newhole], axis=0)
-            spot2 = np.append(spot2,[spot], axis=0)
+        #     tempx = np.unique(tempx) 
+        #     tempy = np.unique(tempy)
+        #     newhole = np.array([tempx[0],tempy[0]])
+        #     holes = np.append(holes, [newhole], axis=0)
+        #     spot2 = np.append(spot2,[spot], axis=0)
 
-        return spot2, holes
+        return spot4.astype(int), hole4 #old spot2 and holes
 
     def hist_stats(bins, freq):
         total = np.sum(freq)
