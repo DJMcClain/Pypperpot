@@ -735,9 +735,9 @@ class PeakByPeakFits():
             stdy.append(stdvy)
             hole_y.append(holey)
             xps.append((meanx+x-tempx.shape[0]/2-holex)/(pixpermm * mask_to_screen)*1000)#meanx+x-tempx.shape[0]/2
-            xperr.append(((meanx+x-tempx.shape[0]/2-holex)/(pixpermm * mask_to_screen)*1000)*np.sqrt((sterx**2+hole_err**2)/((meanx+x-tempx.shape[0]/2-holex)**2)+(puncert/pixpermm)**2+(sigL/mask_to_screen)**2))
-            yps.append(np.arctan((meany+y-tempy.shape[0]/2-holey)/(pixpermm * mask_to_screen))*1000)
-            yperr.append(np.abs(((meany+y-tempy.shape[0]/2-holey)/(pixpermm * mask_to_screen))/(1+((meany+y-tempy.shape[0]/2-holey)/(pixpermm * mask_to_screen))**2)*1000*np.sqrt((stery**2+hole_err**2)/((meany+y-tempy.shape[0]/2-holey)**2 + sigL**2/mask_to_screen**2))))
+            xperr.append(np.abs(((meanx+x-tempx.shape[0]/2-holex)/(pixpermm * mask_to_screen)*1000)*np.sqrt((stdvx**2+hole_err**2)/((meanx+x-tempx.shape[0]/2-holex)**2)+(puncert/pixpermm)**2+(sigL/mask_to_screen)**2)))
+            yps.append((meany+y-tempy.shape[0]/2-holey)/(pixpermm * mask_to_screen)*1000)
+            yperr.append(np.abs(((meany+y-tempy.shape[0]/2-holey)/(pixpermm * mask_to_screen)*1000)*np.sqrt((stdvy**2+hole_err**2)/((meany+y-tempy.shape[0]/2-holey)**2)+(puncert/pixpermm)**2+(sigL/mask_to_screen)**2)))
 
         #         data = np.array(image[x-pixs:x+pixs,:])
         mu4xs = np.array(mu4xs)
@@ -918,7 +918,7 @@ class PeakByPeakFits():
         ellipsexs = np.arange((min(xs)-x_offset)/pixpermm-2, (max(xs)-x_offset)/pixpermm+2, 0.05)
         ellipse1x = (np.sqrt(betX * emitX*np.pi - ellipsexs**2)-alphX*ellipsexs)/betX
         ellipse2x = (-np.sqrt(betX * emitX*np.pi - ellipsexs**2)-alphX*ellipsexs)/betX
-        emitXerr = PeakByPeakFits.EmittanceUncertaintyFunc(intX, sterxs, hole_x, xps, xs, xperr, stdx, meanXtot2, meanXp2, exp_x2, exp_xp2, exp_xxp, mask_to_screen, sigL, mu4xs, emitX, pixpermm)
+        emitXerr = PeakByPeakFits.EmittanceUncertaintyFunc(intX, sterxs, hole_x, xps, xs, xperr, stdx, meanXtot2, meanXp2, exp_x2, exp_xp2, exp_xxp, mask_to_screen, sigL, mu4xs, emitX, pixpermm, x_offset)
         exp_y2 =  np.sum(intY * (hole_y - meanYtot2)**2/pixpermm**2)/np.sum((intY))#mm
         exp_yp2 = np.sum((intY *(np.arctan(sterys/(mask_to_screen*pixpermm))*1000)**2+intY*(yps - meanYp2)**2))/np.sum((intY))#mrad
         exp_yyp = ((np.sum(intY*hole_y*yps)-(np.sum(intY)*meanYp2*meanYtot2))/(pixpermm))/np.sum((intY))#mmmrad
@@ -929,7 +929,7 @@ class PeakByPeakFits():
         ellipseys = np.arange((min(ys)-y_offset)/pixpermm-2, (max(ys)-y_offset)/pixpermm+2, 0.05)
         ellipse1y = (np.sqrt(betY * emitY*np.pi - ellipseys**2)-alphY*ellipseys)/betY
         ellipse2y = (-np.sqrt(betY * emitY*np.pi - ellipseys**2)-alphY*ellipseys)/betY
-        emitYerr = PeakByPeakFits.EmittanceUncertaintyFunc(intY, sterys, hole_y, yps, ys, yperr, stdy, meanYtot2, meanYp2, exp_y2, exp_yp2, exp_yyp, mask_to_screen, sigL, mu4ys, emitY,pixpermm)
+        emitYerr = PeakByPeakFits.EmittanceUncertaintyFunc(intY, sterys, hole_y, yps, ys, yperr, stdy, meanYtot2, meanYp2, exp_y2, exp_yp2, exp_yyp, mask_to_screen, sigL, mu4ys, emitY,pixpermm, y_offset)
         ImageData.ImageReader.plot2.clear()
         ImageData.ImageReader.plot3.clear()
         ImageData.ImageReader.plot2.addLine(x=None, y=0, pen=pg.mkPen('k', width=1))
@@ -991,39 +991,45 @@ class PeakByPeakFits():
 
         return emitX, emitY, emitXerr, emitYerr
 
-    def EmittanceUncertaintyFunc(intX, sterxs, hole_x, xps, xs, xperr, stdx, meanXtot, meanXp, exp_x2, exp_xp2, exp_xxp, L, sigL, mu4x, eps_x,pixpermm, hole_err = 0.0005, puncert = 0):
+    def EmittanceUncertaintyFunc(intX, sterxs, hole_x, xps, xs, xperr, stdx, meanXtot, meanXp, exp_x2, exp_xp2, exp_xxp, L, sigL, mu4x, eps_x,pixpermm, offset, hole_err = 0.00005, puncert = 0):
         #sig_<x^2>
-        sigxbar = meanXtot * np.sqrt(1/np.sum(intX)+np.sum(hole_x**2*intX**2*(1/intX+hole_err**2/hole_x**2))/np.sum(hole_x * intX)**2)#pix good (3)
-        sighij = hole_err#TODO fix #hole_x*pixpermm*np.sqrt((hole_err/hole_x)**2+(puncert/pixpermm)**2)#(1.2 Known sig_hij) mm
-        sigNp2 = np.sum(intX) * pixpermm**2 * np.sqrt(1/np.sum(intX)+4*puncert**2/pixpermm**2) #(6)(p/mm)^2
+        meanXtot = meanXtot-offset
+        hole_x = hole_x - offset+0.00000000001#odd masks have holes at the center, this is to prevent nans in sigxbar
+        xs = xs - offset
+        sighij = hole_err#TODO fix should be in pix #hole_x*pixpermm*np.sqrt((hole_err/hole_x)**2+(puncert/pixpermm)**2)#(1.2 Known sig_hij) mm
+        sigxbar = meanXtot * np.sqrt(1/np.sum(intX)+np.sum((hole_x)**2 * intX**2 * (1/intX + sighij**2/(hole_x)**2)) / np.sum((hole_x) * intX)**2)#pix good (3)
+        
+        sigNp2 = np.sum(intX) * pixpermm**2 * np.sqrt(1/np.sum(intX)+4*puncert**2/pixpermm**2) #(6)(pix/mm)^2
         sigSig1 = np.sqrt(np.sum((intX * (hole_x - meanXtot)**2)**2 * (1/intX + 4/(hole_x - meanXtot)**2*(sighij**2+meanXtot**2*(1/np.sum(intX)+np.sum(hole_x**2*intX**2*(1/intX+(sighij/hole_x)**2))/np.sum(hole_x*intX)**2)))))#(5)
         sigexp_x2 = exp_x2 * np.sqrt((sigNp2/ (np.sum(intX)*pixpermm**2))**2 + (sigSig1 / (np.sum(intX * (hole_x - meanXtot)**2)))**2)#(7)mm good nan here
         
-        sigxbar2 = 2 * meanXtot *sigxbar #pix **2 good
         #sig_<x'^2> # this looks ok?
-        xij0 = xs-hole_x#(10)
-        print(xij0)
-        sigij0 = np.sqrt(sighij**2+stdx**2 - 2*scipy.stats.pearsonr(xs,hole_x)[0] * sighij * stdx)#(11) stdx or sterxs?
-        sigsig2 = np.sqrt((mu4x - (intX-3)/(intX-1)*stdx**4)/intX)#(13)
-        sigL2p2 = 2 * L**2 * pixpermm**2 * np.sqrt((puncert/pixpermm)**2+(sigL/L)**2)#(14)
-        sig1stxp2 = 1000**2 * (stdx**2+xij0**2)/(L**2*pixpermm**2)*np.sqrt(sigsig2**2+(2*xij0*sigij0)**2/(stdx**2+xij0**2)**2+sigL2p2**2/(L**4*pixpermm**4))#(15)
+        xij0 = xs-hole_x#(10) pix
+        sigij0 = np.sqrt(sighij**2+stdx**2 - 2*scipy.stats.pearsonr(xs,hole_x)[0] * sighij * stdx)#(11) pix
+        sigsig22 = (mu4x - (intX-3)/(intX-1)*stdx**4)/intX#(13) pix^4 pre squared to avoid errors
+        sigL2p2 = 2 * L**2 * pixpermm**2 * np.sqrt((puncert/pixpermm)**2+(sigL/L)**2)#(14) pix^2
+        sig1stxp2 = 1000**2 * (stdx**2+xij0**2)/(L**2*pixpermm**2)*np.sqrt((sigsig22+(2*xij0*sigij0)**2)/(stdx**2+xij0**2)**2+sigL2p2**2/(L**4*pixpermm**4))#(15) looks good unitless
 
-        sigxpbari = 1000* (xij0)/(pixpermm * L) * np.sqrt((sigij0/xij0)**2 + sigL**2/L**2+puncert**2/pixpermm**2)#(17)
+        sigxpbari = xps * np.sqrt((sigij0/xij0)**2 + sigL**2/L**2+puncert**2/pixpermm**2)#(17) mrad
         # sigxpbari = xperr
-        # print(f'SIGXPBARI ={sigxpbari}')
-        # print(f'differences = {sigxpbari - xperr}')
+        # print(f'differences = {sigxpbari - xperr}')#sigxpbari takes into account correlation between hole and spot position
         sigxpbar = meanXp * np.sqrt(1/np.sum(intX) + np.sum(intX**2*xps**2*(1/intX + sigxpbari**2/xps**2))/(np.sum(intX*xps)**2))#(19)
-
         sig22 = 2 * abs(xps-meanXp)*np.sqrt(sigxpbar**2+sigxpbari**2)#(20)
         sig2ndxp2 = intX * (xps-meanXp)**2 *np.sqrt(1/intX + (sig22/((xps-meanXp)**2))**2)#(21)
-        sigexp_xp2 = exp_xp2 * np.sqrt(1/np.sum(intX)+ (np.sum(sig1stxp2**2+sig2ndxp2**2)/np.sum(1000**2*(stdx**2+xij0**2)/(L**2*pixpermm**2)+intX*(xps-meanXp)**2)))
+        # print(f'sig2ndxp2 = {sig2ndxp2}')
+        sigexp_xp2 = exp_xp2 * np.sqrt(1/np.sum(intX)+ (np.sum(sig1stxp2**2+sig2ndxp2**2)/(np.sum(1000**2*(stdx**2+xij0**2)/(L**2*pixpermm**2)+intX*(xps-meanXp)**2))**2))#(22)
 
         #sig_<xx'>^2
-        sigxhxp = hole_x *xps * np.sqrt(xperr**2/xps**2 + hole_err**2/hole_x**2 + 2 * scipy.stats.pearsonr(xps,hole_x)[0] * hole_err * xperr / (hole_x * xps))
-        sigSig3 = intX *hole_x * xps / pixpermm * np.sqrt(1 / intX + sigxhxp**2  / (hole_x * xps)**2)
-        sigSig3N = np.sum(intX * hole_x * xps/pixpermm)/np.sum(intX) * np.sqrt(1/np.sum(intX) + np.sum(sigSig3)/np.sum(intX * hole_x * xps/pixpermm)**2)
-        sigxxp = meanXtot * meanXp * np.sqrt(sigxbar**2/meanXtot**2 + sigxpbar**2/ meanXp**2)
-        sigexp_xxp = np.sqrt(sigxxp**2 + sigSig3N**2)
+        sigxxp = meanXtot * meanXp / pixpermm * np.sqrt(sigxbar**2/meanXtot**2 + sigxpbar**2/ meanXp**2+(puncert/pixpermm)**2)#(23) added conversion to mm mrad
+        signxhxp = intX * hole_x * xps * np.sqrt(1/intX + (sighij/hole_x)**2+(sigxpbari/xps)**2)#(25)
+        sig2ndxxp = np.sum(intX * hole_x*xps)/ (pixpermm * np.sum(intX)) *np.sqrt(1/np.sum(intX) + (puncert/pixpermm)**2+np.sum(signxhxp**2)/np.sum(intX*hole_x*xps)**2) #(26)
+        print(f'meanXtot: {meanXtot} +/- {sigxbar}')
+        print(f'meanXp: {meanXp} +/- {sigxpbar}')
+        # sigxhxp = hole_x *xps * np.sqrt(xperr**2/xps**2 + hole_err**2/hole_x**2 + 2 * scipy.stats.pearsonr(xps,hole_x)[0] * hole_err * xperr / (hole_x * xps))
+        # sigSig3 = intX *hole_x * xps / pixpermm * np.sqrt(1 / intX + sigxhxp**2  / (hole_x * xps)**2)
+        # sigSig3N = np.sum(intX * hole_x * xps/pixpermm)/np.sum(intX) * np.sqrt(1/np.sum(intX) + np.sum(sigSig3)/np.sum(intX * hole_x * xps/pixpermm)**2)
+        # sigexp_xxp = np.sqrt(sigxxp**2 + sigSig3N**2)
+        sigexp_xxp = np.sqrt(sigxxp**2 + sig2ndxxp**2)
         sigexp_xxp2 = np.abs(2 * exp_xxp * sigexp_xxp)
         sig_xxp2s = exp_x2 * exp_xp2 * np.sqrt(sigexp_x2**2/exp_x2**2 + sigexp_xp2**2/exp_xp2**2)
         sig_eps2 = np.sqrt(sig_xxp2s**2+sigexp_xxp2**2)

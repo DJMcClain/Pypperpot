@@ -39,7 +39,7 @@ class ResFields(QMainWindow):
         self.setCentralWidget(self.central_widget)
         
         
-        saveDataPrompt = QPushButton('*Save Data*')
+        saveDataPrompt = QPushButton('Save Data')
         saveDataPrompt.clicked.connect(Fitter.PeakByPeakFits.on_SaveData_clicked)
 
         ResFields.xemit = QLabel('')#x_peak_read()
@@ -52,12 +52,17 @@ class ResFields(QMainWindow):
         ResFields.ybeta = QLabel('')
         ResFields.xgamm = QLabel('')
         ResFields.ygamm = QLabel('')
+        xlabel = QLabel('  ')
+        ylabel = QLabel('  ')
+        xlabel.setStyleSheet("background-color:#1f77b4")
+        ylabel.setStyleSheet("background-color:#ff7f0e")
         Twiss = QLabel('Twiss Parameters')
         Twiss.setAlignment(QtCore.Qt.AlignCenter)
         self.central_widget.setLayout(self.layoutV1)
         self.central_widget.setFrameStyle(QFrame.StyledPanel | QFrame.Sunken)
         self.central_widget.setLineWidth(2)
         self.layoutV1.addLayout(self.layoutH1)
+        self.layoutH1.addWidget(xlabel)
         self.layoutH1.addWidget(QLabel(f'\u03b5_x = '))
         self.layoutH1.addWidget(ResFields.xemit)
         self.layoutH1.addWidget(QLabel(f' \u00b1 '))
@@ -66,6 +71,7 @@ class ResFields(QMainWindow):
 
 
         self.layoutV1.addLayout(self.layoutH2)
+        self.layoutH2.addWidget(ylabel)
         self.layoutH2.addWidget(QLabel(f'\u03b5_y = '))
         self.layoutH2.addWidget(ResFields.yemit)
         self.layoutH2.addWidget(QLabel(f' \u00b1 '))
