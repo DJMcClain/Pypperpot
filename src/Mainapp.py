@@ -24,6 +24,7 @@ import MaskFields
 import HandFitWindow
 import Sliders
 import Fitter
+import ResultFields
 
 # path = os.getcwd()
 path = 'D:/Workspace/Images/'
@@ -45,7 +46,6 @@ class MainWindow(QMainWindow):
         self.MskFields = MaskFields.MaskWidget()
         self.layoutH10 = QHBoxLayout() # Fit/Hand Fit
         self.setCentralWidget(self.central_widget)
-
 #button classes to be started
 
         multiFit = QPushButton('Multi Fit (Max 8 peaks)')
@@ -61,8 +61,8 @@ class MainWindow(QMainWindow):
 
 #Set Highest layer layout and work down
         self.central_widget.setLayout(self.layoutH0)
-        self.layoutH0.addLayout(self.layoutV1)#column 1
-        self.layoutH0.addLayout(self.layoutV0)#column 2
+        self.layoutH0.addLayout(self.layoutV1,1)#column 1
+        self.layoutH0.addLayout(self.layoutV0,9)#column 2
 
         self.layoutV0.addWidget(self.layoutG1)
 
@@ -70,9 +70,9 @@ class MainWindow(QMainWindow):
         self.layoutV1.addWidget(self.MskFields)
 
         self.layoutV1.addLayout(self.layoutH10)
-        self.layoutH10.addWidget(multiFit)
+        #self.layoutH10.addWidget(multiFit)
         self.layoutH10.addWidget(pbpFit)
-        self.layoutH10.addWidget(self.handfit)   
+        #self.layoutH10.addWidget(self.handfit)   
 
     def changeFitplots(self,value):
         # ImageData.ImageReader.plot1.clear()

@@ -23,6 +23,7 @@ import ImageFields
 import MaskFields
 import HandFitWindow
 import Sliders
+import ResultFields
 
 fitbool = False
 def gaussian(x, height, center, sigma, offset):
@@ -393,50 +394,55 @@ class PeakByPeakFits():
         #FitterFunc(x2s, y2s, spot2, holes, d, image, pixpermm, mask_to_screen, windowfrac, sigL, hole_err = 0)
         spot2, holes = PeakByPeakFits.Mapping()
         # TODO TEMPORARY, add controls for window fraction and sigL
-        sigL = 0.05
+        sigL = 0.05#mm
         windowfrac = 2
+        puncert = 0.005 #pix/mm
+        hole_err = 0.00005 #mm
 
-        intX, sterxs, hole_x, xps, xs, xperr, stdx, intY, sterys, hole_y, yps, yperr, ys, stdy, mu4xs, mu4ys = PeakByPeakFits.FitterFunc(ImageData.x3s,ImageData.y3s, spot2, holes,windowfrac, sigL)
-        emitX, emitY, emitXerr, emitYerr = PeakByPeakFits.EmittanceFunction(intX, sterxs, hole_x, xps, xs, xperr, stdx,mu4xs, intY, sterys, hole_y, yps, yperr, ys, stdy, mu4ys, sigL)
-
-        ImageData.resultsdf = pd.DataFrame({'Mask':'name','EmitX':emitX, 'EmitY':emitY, 'EmitXerr':emitXerr, 'EmitYerr':emitYerr}, index = [0])
-                    
+        intX, PeakByPeakFits.sterxs, hole_x, PeakByPeakFits.xps, PeakByPeakFits.xs, PeakByPeakFits.xperr, stdx, intY, PeakByPeakFits.sterys, hole_y, PeakByPeakFits.yps, PeakByPeakFits.yperr, PeakByPeakFits.ys, stdy, mu4xs, mu4ys = PeakByPeakFits.FitterFunc(ImageData.x3s,ImageData.y3s, spot2, holes,windowfrac, sigL, hole_err,puncert)
+        PeakByPeakFits.emitX, PeakByPeakFits.emitY, PeakByPeakFits.emitXerr, PeakByPeakFits.emitYerr = PeakByPeakFits.EmittanceFunction(intX, PeakByPeakFits.sterxs, hole_x, PeakByPeakFits.xps, PeakByPeakFits.xs, PeakByPeakFits.xperr, stdx,mu4xs, intY, PeakByPeakFits.sterys, hole_y, PeakByPeakFits.yps, PeakByPeakFits.yperr, PeakByPeakFits.ys, stdy, mu4ys, sigL)
+        image = ImageData.imgData
+        x_offset = (image.shape[1])/2
+        y_offset = (image.shape[0])/2
+        pixpermm = ImageData.pixpermm
+        PeakByPeakFits.resultsdfx = pd.DataFrame({'X(mm)':(PeakByPeakFits.xs-x_offset)/pixpermm ,  "X'(mrad)":PeakByPeakFits.xps,  "Xerr":PeakByPeakFits.sterxs/pixpermm, "X'err":PeakByPeakFits.xperr})
+        PeakByPeakFits.resultsdfy = pd.DataFrame({'Y(mm)':(PeakByPeakFits.ys-y_offset)/pixpermm ,  "Y'(mrad)":PeakByPeakFits.yps,  "Yerr":PeakByPeakFits.sterys/pixpermm, "Y'err":PeakByPeakFits.yperr})            
         
-        MultiFits.Xprojdf = pd.DataFrame({'Ypos': hole_y, 'Mean': xs, 'Sig': stdx,'Int': intX})
-        MultiFits.Yprojdf = pd.DataFrame({'Xpos': hole_x, 'Mean': ys, 'Sig': stdy,'Int': intY})
+       # MultiFits.Xprojdf = pd.DataFrame({'Ypos': hole_y, 'Mean': PeakByPeakFits.xs, 'Sig': stdx,'Int': intX})
+       # MultiFits.Yprojdf = pd.DataFrame({'Xpos': hole_x, 'Mean': PeakByPeakFits.ys, 'Sig': stdy,'Int': intY})
 
-        #Remapping
-        Meanx = []
-        Intx = []
-        Sigx = []
-        j = 0
-        for i in range(MultiFits.Xprojdf.shape[0]):
-            if i < ImageData.num_peaks_y:
-                # print(i)
-                Meanx.append(MultiFits.Xprojdf.Mean[i * ImageData.num_peaks_x])
-                Intx.append(MultiFits.Xprojdf.Int[i *   ImageData.num_peaks_x])
-                Sigx.append(MultiFits.Xprojdf.Sig[i *   ImageData.num_peaks_x])
-            else:
-                if i%ImageData.num_peaks_y == 0:
-                    j=j+1
-                Meanx.append(MultiFits.Xprojdf.Mean[i%ImageData.num_peaks_y*ImageData.num_peaks_x + j])
-                Intx.append(  MultiFits.Xprojdf.Int[i%ImageData.num_peaks_y*ImageData.num_peaks_x + j])
-                Sigx.append(  MultiFits.Xprojdf.Sig[i%ImageData.num_peaks_y*ImageData.num_peaks_x + j])
-        Meanx = np.array(Meanx)
-        Intx = np.array(Intx)
-        Sigx = np.array(Sigx)
+        # #Remapping
+        # Meanx = []
+        # Intx = []
+        # Sigx = []
+        # j = 0
+        # for i in range(MultiFits.Xprojdf.shape[0]):
+        #     if i < ImageData.num_peaks_y:
+        #         # print(i)
+        #         Meanx.append(MultiFits.Xprojdf.Mean[i * ImageData.num_peaks_x])
+        #         Intx.append(MultiFits.Xprojdf.Int[i *   ImageData.num_peaks_x])
+        #         Sigx.append(MultiFits.Xprojdf.Sig[i *   ImageData.num_peaks_x])
+        #     else:
+        #         if i%ImageData.num_peaks_y == 0:
+        #             j=j+1
+        #         Meanx.append(MultiFits.Xprojdf.Mean[i%ImageData.num_peaks_y*ImageData.num_peaks_x + j])
+        #         Intx.append(  MultiFits.Xprojdf.Int[i%ImageData.num_peaks_y*ImageData.num_peaks_x + j])
+        #         Sigx.append(  MultiFits.Xprojdf.Sig[i%ImageData.num_peaks_y*ImageData.num_peaks_x + j])
+        # Meanx = np.array(Meanx)
+        # Intx = np.array(Intx)
+        # Sigx = np.array(Sigx)
 
-        templocs = ImageData.locsdf[(ImageData.locsdf.X > min_x-ImageData.d/2) & (ImageData.locsdf.X < max_x+ImageData.d/2)]
-        templocs = templocs[(ImageData.locsdf.Y > min_y-ImageData.d/2) & (ImageData.locsdf.Y < max_y+ImageData.d/2)]
-        print(templocs)
-        print(f'templocs.X.to_numpy(),{templocs.X.to_numpy().shape[0]}')
-        print(f'Meanx,{Meanx.shape[0]}')
-        print(f'Sigx,{Sigx.shape[0]}')
-        print(f'Intx,{Intx.shape[0]}')
-        print(f'templocs.Y.to_numpy(),{templocs.Y.to_numpy().shape[0]}')
-        print(f'yprojMean, {len(ys)}')
-        print(f'yprojSig,{len(stdy)}')
-        print(f'yprojInt {len(intY)}')
+        # templocs = ImageData.locsdf[(ImageData.locsdf.X > min_x-ImageData.d/2) & (ImageData.locsdf.X < max_x+ImageData.d/2)]
+        # templocs = templocs[(ImageData.locsdf.Y > min_y-ImageData.d/2) & (ImageData.locsdf.Y < max_y+ImageData.d/2)]
+        # print(templocs)
+        # print(f'templocs.X.to_numpy(),{templocs.X.to_numpy().shape[0]}')
+        # print(f'Meanx,{Meanx.shape[0]}')
+        # print(f'Sigx,{Sigx.shape[0]}')
+        # print(f'Intx,{Intx.shape[0]}')
+        # print(f'templocs.Y.to_numpy(),{templocs.Y.to_numpy().shape[0]}')
+        # print(f'yprojMean, {len(ys)}')
+        # print(f'yprojSig,{len(stdy)}')
+        # print(f'yprojInt {len(intY)}')
         # MultiFits.projectionsdf = pd.DataFrame({'HoleX': templocs.X.to_numpy(),
         #                                    'MeanX': Meanx,
         #                                    'SigX':  Sigx,
@@ -446,8 +452,8 @@ class PeakByPeakFits():
         #                                    'SigY':  stdy,
         #                                    'IntY':  intY})
         #output resultsdf as header, projectionsdf as file body
-        ImageData.ImageReader.slY.setValue(4)
-        ImageData.ImageReader.slX.setValue(4)
+        # ImageData.ImageReader.slY.setValue(4)
+        # ImageData.ImageReader.slX.setValue(4)
         # print(ImageData.resultsdf())
         return
   
@@ -472,7 +478,6 @@ class PeakByPeakFits():
         posSpoty = spoty[spoty >= 0]
         negSpotx = spotx[spotx < 0]
         negSpoty = spoty[spoty < 0]
-
         binx[spotx == centerx] = 0 
         biny[spoty == centery] = 0 
         tempx = min(posSpotx[posSpotx > centerx])#1
@@ -508,7 +513,7 @@ class PeakByPeakFits():
                 tempx = max(negSpotx[negSpotx < tempx])
             except:
                 break
-            
+
         for spot in np.unique(negSpoty):
             j-=1
             biny[spoty == tempy] = j
@@ -539,6 +544,7 @@ class PeakByPeakFits():
         ordered_holes = np.array(ordered_holes)
         spot2 = ordered_spots#[:4]
         hole2 = ordered_holes#[:4]
+        #attempt to overcome many hole tripping
         spot3 = PeakByPeakFits.Binning(spot2)
         hole3 = PeakByPeakFits.Binning(hole2)
         hole4 = np.copy(spot3)
@@ -601,7 +607,7 @@ class PeakByPeakFits():
         ster = stdv / np.sqrt(total)
         return total, mean, stdv, ster
 
-    def FitterFunc(x2s, y2s, spot2, holes, windowfrac, sigL, hole_err = 0):
+    def FitterFunc(x2s, y2s, spot2, holes, windowfrac, sigL, hole_err, puncert):
         d = ImageData.d 
         image = ImageData.imgData
         pixpermm = ImageData.pixpermm
@@ -728,8 +734,8 @@ class PeakByPeakFits():
             ys.append(meany - tempy.shape[0]/2 + y)
             stdy.append(stdvy)
             hole_y.append(holey)
-            xps.append(np.arctan((meanx+x-tempx.shape[0]/2-holex)/(pixpermm * mask_to_screen))*1000)#meanx+x-tempx.shape[0]/2
-            xperr.append(np.abs(((meanx+x-tempx.shape[0]/2-holex)/(pixpermm * mask_to_screen))/(1+((meanx+x-tempx.shape[0]/2-holex)/(pixpermm * mask_to_screen))**2)*1000*np.sqrt((sterx**2+hole_err**2)/((meanx+x-tempx.shape[0]/2-holex)**2 + sigL**2/mask_to_screen**2))))
+            xps.append((meanx+x-tempx.shape[0]/2-holex)/(pixpermm * mask_to_screen)*1000)#meanx+x-tempx.shape[0]/2
+            xperr.append(((meanx+x-tempx.shape[0]/2-holex)/(pixpermm * mask_to_screen)*1000)*np.sqrt((sterx**2+hole_err**2)/((meanx+x-tempx.shape[0]/2-holex)**2)+(puncert/pixpermm)**2+(sigL/mask_to_screen)**2))
             yps.append(np.arctan((meany+y-tempy.shape[0]/2-holey)/(pixpermm * mask_to_screen))*1000)
             yperr.append(np.abs(((meany+y-tempy.shape[0]/2-holey)/(pixpermm * mask_to_screen))/(1+((meany+y-tempy.shape[0]/2-holey)/(pixpermm * mask_to_screen))**2)*1000*np.sqrt((stery**2+hole_err**2)/((meany+y-tempy.shape[0]/2-holey)**2 + sigL**2/mask_to_screen**2))))
 
@@ -924,61 +930,93 @@ class PeakByPeakFits():
         ellipse1y = (np.sqrt(betY * emitY*np.pi - ellipseys**2)-alphY*ellipseys)/betY
         ellipse2y = (-np.sqrt(betY * emitY*np.pi - ellipseys**2)-alphY*ellipseys)/betY
         emitYerr = PeakByPeakFits.EmittanceUncertaintyFunc(intY, sterys, hole_y, yps, ys, yperr, stdy, meanYtot2, meanYp2, exp_y2, exp_yp2, exp_yyp, mask_to_screen, sigL, mu4ys, emitY,pixpermm)
-        plt.figure(figsize=(9,6))
-        plt.errorbar((xs-x_offset)/pixpermm,xps, xerr = sterxs/pixpermm, yerr = xperr, fmt = 'o',label = f'Horizontal Phase Space: $\epsilon_x$ = {emitX:.3f} +/- {emitXerr:.3f} $\pi$*mm*mrad', capsize = 3, markeredgewidth=1)
-        plt.errorbar((ys-y_offset)/pixpermm,yps, xerr = sterys/pixpermm, yerr = yperr,fmt ='.',label = f'Vertical Phase Space: $\epsilon_y$ = {emitY:.3f} +/- {emitYerr:.3f} $\pi$*mm*mrad', capsize = 3, markeredgewidth=1)
-        plt.plot(ellipsexs,ellipse1x, c='tab:blue')
-        plt.plot(ellipsexs,ellipse2x, c='tab:blue')
-        plt.plot(ellipseys,ellipse1y, c='tab:orange')
-        plt.plot(ellipseys,ellipse2y, c='tab:orange')
-        plt.xlabel('X (mm)')
-        plt.ylabel("X' (mrad)")
-        plt.axhline(0,c='k')
-        plt.axvline(0,c='k')
-        plt.legend()
-        plt.show()
-        
+        ImageData.ImageReader.plot2.clear()
+        ImageData.ImageReader.plot3.clear()
+        ImageData.ImageReader.plot2.addLine(x=None, y=0, pen=pg.mkPen('k', width=1))
+        ImageData.ImageReader.plot2.addLine(x=0, y=None, pen=pg.mkPen('k', width=1))
+        ImageData.ImageReader.plot3.addLine(x=None, y=0, pen=pg.mkPen('k', width=1))
+        ImageData.ImageReader.plot3.addLine(x=0, y=None, pen=pg.mkPen('k', width=1))
+        # plt.figure(figsize=(9,6))
+        # plt.errorbar((xs-x_offset)/pixpermm,xps, xerr = sterxs/pixpermm, yerr = xperr, fmt = 'o',label = f'Horizontal Phase Space: $\epsilon_x$ = {emitX:.3f} +/- {emitXerr:.3f} $\pi$*mm*mrad', capsize = 3, markeredgewidth=1)
+        # plt.errorbar((ys-y_offset)/pixpermm,yps, xerr = sterys/pixpermm, yerr = yperr,fmt ='.',label = f'Vertical Phase Space: $\epsilon_y$ = {emitY:.3f} +/- {emitYerr:.3f} $\pi$*mm*mrad', capsize = 3, markeredgewidth=1)
+        # plt.plot(ellipsexs,ellipse1x, c='tab:blue')
+        # plt.plot(ellipsexs,ellipse2x, c='tab:blue')
+        # plt.plot(ellipseys,ellipse1y, c='tab:orange')
+        # plt.plot(ellipseys,ellipse2y, c='tab:orange')
+        # plt.xlabel('X (mm)')
+        # plt.ylabel("X' (mrad)")
+        # plt.axhline(0,c='k')
+        # plt.axvline(0,c='k')
+        # plt.legend()
+        # plt.show()
+        # plto = pg.PlotItem()
+        xvalsItem = pg.ScatterPlotItem(x=(xs-x_offset)/pixpermm, y=xps, pen=pg.mkPen("#1f77b4", width=1),brush = pg.mkBrush("#1f77b4"),name = f'Horizontal Phase Space: $\epsilon_x$ = {emitX:.3f} +/- {emitXerr:.3f} $\pi$*mm*mrad')
+        yvalsItem = pg.ScatterPlotItem(x=(ys-y_offset)/pixpermm, y=yps, pen=pg.mkPen("#ff7f0e", width=1),brush = pg.mkBrush("#ff7f0e"),name=f'Vertical Phase Space: $\epsilon_y$ = {emitY:.3f} +/- {emitYerr:.3f} $\pi$*mm*mrad')
+        xerrsItem = pg.ErrorBarItem(x=(xs-x_offset)/pixpermm, y=xps, height =2* xperr, width=2*sterxs/pixpermm, beam = 0.1,pen = pg.mkPen("#1f77b4", width=1))
+        yerrsItem = pg.ErrorBarItem(x=(ys-y_offset)/pixpermm, y=yps, height =2* yperr,width = 2*sterys/pixpermm, beam = 0.1, pen = pg.mkPen("#ff7f0e", width=1))
+        ImageData.ImageReader.plot2.plot(ellipsexs,ellipse1x, pen=pg.mkPen("#1f77b4", width=1))
+        ImageData.ImageReader.plot2.plot(ellipsexs,ellipse2x, pen=pg.mkPen("#1f77b4", width=1))
+        ImageData.ImageReader.plot2.plot(ellipseys,ellipse1y, pen=pg.mkPen("#ff7f0e", width=1))
+        ImageData.ImageReader.plot2.plot(ellipseys,ellipse2y, pen=pg.mkPen("#ff7f0e", width=1))
+        ImageData.ImageReader.plot2.addItem(xerrsItem)
+        ImageData.ImageReader.plot2.addItem(yerrsItem)
+        ImageData.ImageReader.plot2.addItem(xvalsItem)
+        ImageData.ImageReader.plot2.addItem(yvalsItem)
+        # legend = pg.LegendItem(pen = pg.mkPen('k'))
+        # legend.setParentItem(plto)
+        # legend.addItem(xvalsItem, name = f'Horizontal Phase Space: $\epsilon_x$ = {emitX:.3f} +/- {emitXerr:.3f} $\pi$*mm*mrad')
+        # legend.addItem(yvalsItem, name=f'Vertical Phase Space: $\epsilon_y$ = {emitY:.3f} +/- {emitYerr:.3f} $\pi$*mm*mrad')
+        # ImageData.ImageReader.plot2.addItem(legend)
+        #ImageData.ImageReader.plot2.addLegend(legend)
+        xemitstr = f'{emitX:.3f}'
+        yemitstr = f'{emitY:.3f}'
+        xemiterrstr = f'{emitXerr:.3f}'
+        yemiterrstr = f'{emitYerr:.3f}'
+        xalphstr = f'{alphX:.3f}'
+        xbetastr = f'{betX:.3f}'
+        xgammstr = f'{gamX:.3f}'
+        yalphstr = f'{alphY:.3f}'
+        ybetastr = f'{betY:.3f}'
+        ygammstr = f'{gamY:.3f}'
+        ResultFields.ResFields.xemit.setText(xemitstr)
+        ResultFields.ResFields.yemit.setText(yemitstr)
+        ResultFields.ResFields.xemiterr.setText(xemiterrstr)
+        ResultFields.ResFields.yemiterr.setText(yemiterrstr)
+        ResultFields.ResFields.xalph.setText(xalphstr)
+        ResultFields.ResFields.yalph.setText(yalphstr)
+        ResultFields.ResFields.xbeta.setText(xbetastr)
+        ResultFields.ResFields.ybeta.setText(ybetastr)
+        ResultFields.ResFields.xgamm.setText(xgammstr)
+        ResultFields.ResFields.ygamm.setText(ygammstr)
+
         return emitX, emitY, emitXerr, emitYerr
 
-    def EmittanceUncertaintyFunc(intX, sterxs, hole_x, xps, xs, xperr, stdx, meanXtot, meanXp, exp_x2, exp_xp2, exp_xxp, L, sigL, mu4x, eps_x,pixpermm, hole_err = 0.0005):
+    def EmittanceUncertaintyFunc(intX, sterxs, hole_x, xps, xs, xperr, stdx, meanXtot, meanXp, exp_x2, exp_xp2, exp_xxp, L, sigL, mu4x, eps_x,pixpermm, hole_err = 0.0005, puncert = 0):
         #sig_<x^2>
-        sigxbar = meanXtot * np.sqrt(1/np.sum(intX)+np.sum(hole_x**2*intX**2*(1/intX+hole_err**2/hole_x**2))/np.sum(hole_x * intX)**2)#pix good
+        sigxbar = meanXtot * np.sqrt(1/np.sum(intX)+np.sum(hole_x**2*intX**2*(1/intX+hole_err**2/hole_x**2))/np.sum(hole_x * intX)**2)#pix good (3)
+        sighij = hole_err#TODO fix #hole_x*pixpermm*np.sqrt((hole_err/hole_x)**2+(puncert/pixpermm)**2)#(1.2 Known sig_hij) mm
+        sigNp2 = np.sum(intX) * pixpermm**2 * np.sqrt(1/np.sum(intX)+4*puncert**2/pixpermm**2) #(6)(p/mm)^2
+        sigSig1 = np.sqrt(np.sum((intX * (hole_x - meanXtot)**2)**2 * (1/intX + 4/(hole_x - meanXtot)**2*(sighij**2+meanXtot**2*(1/np.sum(intX)+np.sum(hole_x**2*intX**2*(1/intX+(sighij/hole_x)**2))/np.sum(hole_x*intX)**2)))))#(5)
+        sigexp_x2 = exp_x2 * np.sqrt((sigNp2/ (np.sum(intX)*pixpermm**2))**2 + (sigSig1 / (np.sum(intX * (hole_x - meanXtot)**2)))**2)#(7)mm good nan here
+        
         sigxbar2 = 2 * meanXtot *sigxbar #pix **2 good
-        sigSig1 = 1/pixpermm**2 * np.sqrt(np.sum((intX * (hole_x - meanXtot)**2)**2 * (1/intX + 4*(sigxbar**2+hole_err**2)/(hole_x - meanXtot)**2)))#mm**2 good
-        sigexp_x2 = exp_x2 * np.sqrt(1/ np.sum(intX) + (sigSig1 / (np.sum(intX * (hole_x - meanXtot)**2)/pixpermm**2))**2)#mm good nan here
-
         #sig_<x'^2> # this looks ok?
-        # print(f'xperr:{xperr}')
-        sigxpbari = 1000* (xs - hole_x)/(pixpermm * L) * np.sqrt((sterxs**2+hole_err**2 - 2 * scipy.stats.pearsonr(xs,hole_x)[0]*sterxs*hole_err)/(xs-hole_x)**2 + sigL**2/L**2)/(1+((xs - hole_x)/(pixpermm * L))**2)#mrad good
-        # print(f'sigxpbari:{sigxpbari}')
-        #significantly better
+        xij0 = xs-hole_x#(10)
+        print(xij0)
+        sigij0 = np.sqrt(sighij**2+stdx**2 - 2*scipy.stats.pearsonr(xs,hole_x)[0] * sighij * stdx)#(11) stdx or sterxs?
+        sigsig2 = np.sqrt((mu4x - (intX-3)/(intX-1)*stdx**4)/intX)#(13)
+        sigL2p2 = 2 * L**2 * pixpermm**2 * np.sqrt((puncert/pixpermm)**2+(sigL/L)**2)#(14)
+        sig1stxp2 = 1000**2 * (stdx**2+xij0**2)/(L**2*pixpermm**2)*np.sqrt(sigsig2**2+(2*xij0*sigij0)**2/(stdx**2+xij0**2)**2+sigL2p2**2/(L**4*pixpermm**4))#(15)
+
+        sigxpbari = 1000* (xij0)/(pixpermm * L) * np.sqrt((sigij0/xij0)**2 + sigL**2/L**2+puncert**2/pixpermm**2)#(17)
         # sigxpbari = xperr
-        print(f'SIGXPBARI ={sigxpbari}')
+        # print(f'SIGXPBARI ={sigxpbari}')
         # print(f'differences = {sigxpbari - xperr}')
-        # sigxpbari = xperr#doesn't take into account mixing term
-        # print(f'sigxpbari new:{sigxpbari}')
-        sigxpbar = meanXp * np.sqrt(1/np.sum(intX) + np.sum(intX**2*xps**2*(1/intX + sigxpbari**2/xps**2))/(np.sum(intX*xps)**2))#mrad
+        sigxpbar = meanXp * np.sqrt(1/np.sum(intX) + np.sum(intX**2*xps**2*(1/intX + sigxpbari**2/xps**2))/(np.sum(intX*xps)**2))#(19)
 
-        sigstd = np.sqrt((mu4x - (intX-3)/(intX-1)*stdx**4)/intX)/(2*stdx)#pix
-        #check below, big issue #thousands?
-        #major gains in losing 1000s
-#         sigsigL = np.abs(2*np.arctan(stdx / (pixpermm * L))*1000 *1000 *(stdx / (pixpermm * L)) *np.sqrt(sigstd**2/stdx**2+sigL**2/L**2)/(1+(stdx / (pixpermm * L))**2))
-        sigsigL = np.abs(2*np.arctan(sterxs / (pixpermm * L)) *(sterxs / (pixpermm * L)) *np.sqrt(sigstd**2/sterxs**2+sigL**2/L**2)/(1+(sterxs / (pixpermm * L))**2))
-        sig_par22 = 2 * (xps - meanXp)*np.sqrt(sigxpbari **2 + sigxpbar**2)
-
-        #no effect as expected
-        part1 = (np.arctan(sterxs / (pixpermm * L))*1000)**2
-#         part1 = (np.arctan(stdx / (pixpermm * L)))**2
-        part2 = (xps - meanXp)**2
-        rho = scipy.stats.pearsonr(part1,part2)[0]
-
-        lilsig = np.sqrt(sigsigL**2 + sig_par22**2 + 2*rho*sigsigL*sig_par22)
-        #small gains in losing 1000
-#         sigSig2 = np.sqrt(np.sum(intX**2 * ((np.arctan(stdx / (pixpermm * L))*1000)**2 + (xps - meanXp)**2)**2 * (1/intX + (lilsig)**2/((np.arctan(stdx / (pixpermm * L))*1000)**2 + (xps - meanXp)**2)**2)))
-        sigSig2 = np.sqrt(np.sum(intX**2 * ((np.arctan(sterxs/ (pixpermm * L)))**2 + (xps - meanXp)**2)**2 * (1/intX + (lilsig)**2/((np.arctan(sterxs / (pixpermm * L)))**2 + (xps - meanXp)**2)**2)))
-        #small losses in losing 1000
-        sigexp_xp2 = exp_xp2 * np.sqrt(1/np.sum(intX) + (sigSig2/np.sum((np.arctan(sterxs/ (pixpermm * L))*1000)**2 + (xps - meanXp)**2))**2)
-#         sigexp_xp2 = exp_xp2 * np.sqrt(1/np.sum(intX) + (sigSig2/np.sum((np.arctan(stdx / (pixpermm * L)))**2 + (xps - meanXp)**2))**2)
+        sig22 = 2 * abs(xps-meanXp)*np.sqrt(sigxpbar**2+sigxpbari**2)#(20)
+        sig2ndxp2 = intX * (xps-meanXp)**2 *np.sqrt(1/intX + (sig22/((xps-meanXp)**2))**2)#(21)
+        sigexp_xp2 = exp_xp2 * np.sqrt(1/np.sum(intX)+ (np.sum(sig1stxp2**2+sig2ndxp2**2)/np.sum(1000**2*(stdx**2+xij0**2)/(L**2*pixpermm**2)+intX*(xps-meanXp)**2)))
 
         #sig_<xx'>^2
         sigxhxp = hole_x *xps * np.sqrt(xperr**2/xps**2 + hole_err**2/hole_x**2 + 2 * scipy.stats.pearsonr(xps,hole_x)[0] * hole_err * xperr / (hole_x * xps))
@@ -997,3 +1035,26 @@ class PeakByPeakFits():
         print(sigexp_x2)
 #         sig_eps = 1/(2*eps_x) *np.sqrt(sig_xxp2s**2 + sigexp_xxp2**2)
         return sig_eps
+    def on_SaveData_clicked(self):
+        saveFileName = QFileDialog.getSaveFileName(caption = "Save Data",filter ="*.csv")
+        file = open(saveFileName[0], 'w')
+        writer =csv.writer(file)
+        writer.writerow(['Mask Details'])
+        writer.writerow(["-----------------------------------------------------------------------------"])
+        writer.writerow([f' 1D Hole Number: {ImageData.n_holes}', f' Hole Diameter: {ImageData.hole_diameter} mm',f' Hole Separation: {ImageData.hole_separation} mm',f' Mask-to-Screen Distance: {ImageData.mask_to_screen} mm',f' Pixel-to-Millimeter Calibration: {ImageData.pixpermm}p/mm'])
+        writer.writerow(['Fit Settings'])
+        writer.writerow(["-----------------------------------------------------------------------------"])
+        writer.writerow([f' X Peaks: {ImageData.num_peaks_x}', f' Y Peaks: {ImageData.num_peaks_y}',f' Min X: {ImageFields.ImFields.xminIn.text()}',f' Min Y: {ImageFields.ImFields.yminIn.text()}',f' Max X: {ImageFields.ImFields.xmaxIn.text()}', f' Max Y: {ImageFields.ImFields.ymaxIn.text()}'])
+        writer.writerow([f'Fit Results'])
+        writer.writerow(["-----------------------------------------------------------------------------"])
+        writer.writerow([f'X Emittance = {ResultFields.ResFields.xemit.text()} +/- {ResultFields.ResFields.xemiterr.text()} pi mm mrad', f' alpha_x = {ResultFields.ResFields.xalph.text()}', f' beta_x = {ResultFields.ResFields.xbeta.text()}', f' gamma_x = {ResultFields.ResFields.xgamm.text()}'])
+        writer.writerow([f'Y Emittance = {ResultFields.ResFields.yemit.text()} +/- {ResultFields.ResFields.yemiterr.text()} pi mm mrad', f' alpha_y = {ResultFields.ResFields.yalph.text()}', f' beta_y = {ResultFields.ResFields.ybeta.text()}', f' gamma_y = {ResultFields.ResFields.ygamm.text()}'])
+        writer.writerow(["-----------------------------------------------------------------------------"])
+        writer.writerow([f'Fit Data X'])
+        writer.writerow(["-----------------------------------------------------------------------------"])
+        PeakByPeakFits.resultsdfx.to_csv(file,mode='a')
+        writer.writerow([f'Fit Data Y'])
+        writer.writerow(["-----------------------------------------------------------------------------"])        
+        PeakByPeakFits.resultsdfy.to_csv(file,mode='a')
+        file.close()
+        return

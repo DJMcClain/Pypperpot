@@ -23,63 +23,75 @@ import os
 import scipy
 import ImageData
 import Mainapp
+import Fitter
 
-class ImFields(QMainWindow):
+class ResFields(QMainWindow):
     def __init__(self):
-        super(ImFields, self).__init__()
-        self.central_widget = QWidget()
+        super(ResFields, self).__init__()
+        self.central_widget = QFrame()
         self.layoutV1 = QVBoxLayout()
-        self.layoutH1 = QHBoxLayout() # Load/Save Image
-        self.layoutH2 = QHBoxLayout() # peak nums
-        self.layoutH3 = QHBoxLayout() # max/min pixels
-        self.layoutH3b = QHBoxLayout() # max/min pixels
-        self.layoutH4 = QHBoxLayout() # Final Prompts
-        self.setCentralWidget(self.central_widget)
-
-        loadImagePrompt = QPushButton('Load Image')
-        saveImagePrompt = QPushButton('*Save Image*')
-        loadImagePrompt.clicked.connect(ImageData.ImageReader.on_LoadIm_clicked)
-        saveImagePrompt.clicked.connect(ImageData.ImageReader.on_SaveIm_clicked)
-
+        self.layoutH1 = QHBoxLayout() # emitx
+        self.layoutH2 = QHBoxLayout() # emity
+        self.layoutH3 = QHBoxLayout() # alpha
+        self.layoutH4 = QHBoxLayout() # beta
+        self.layoutH5 = QHBoxLayout() # gamma
         
-        FindPeaksPrompt = QPushButton('Find Peaks')
-        ReducePrompt = QPushButton('Reduce Peak Number')
-        FindPeaksPrompt.clicked.connect(ImageData.ImageReader.on_FindPeaks_clicked)
-        ReducePrompt.clicked.connect(ImageData.ImageReader.on_Reduce_clicked)
+        self.setCentralWidget(self.central_widget)
+        
+        
+        saveDataPrompt = QPushButton('*Save Data*')
+        saveDataPrompt.clicked.connect(Fitter.PeakByPeakFits.on_SaveData_clicked)
 
-        ImFields.xpeaksIn = x_peak_read()
-        ImFields.ypeaksIn = y_peak_read()
-        ImFields.xminIn = x_min_read()
-        ImFields.yminIn = y_min_read()
-        ImFields.xmaxIn = x_max_read()
-        ImFields.ymaxIn = y_max_read()
-
+        ResFields.xemit = QLabel('')#x_peak_read()
+        ResFields.yemit = QLabel('')#y_peak_read()
+        ResFields.xemiterr = QLabel('')#x_min_read()
+        ResFields.yemiterr = QLabel('')#y_min_read()
+        ResFields.xalph = QLabel('')#x_max_read()
+        ResFields.yalph = QLabel('')
+        ResFields.xbeta = QLabel('')
+        ResFields.ybeta = QLabel('')
+        ResFields.xgamm = QLabel('')
+        ResFields.ygamm = QLabel('')
+        Twiss = QLabel('Twiss Parameters')
+        Twiss.setAlignment(QtCore.Qt.AlignCenter)
         self.central_widget.setLayout(self.layoutV1)
+        self.central_widget.setFrameStyle(QFrame.StyledPanel | QFrame.Sunken)
+        self.central_widget.setLineWidth(2)
         self.layoutV1.addLayout(self.layoutH1)
-        self.layoutH1.addWidget(loadImagePrompt)
-        #self.layoutH1.addWidget(saveImagePrompt)
+        self.layoutH1.addWidget(QLabel(f'\u03b5_x = '))
+        self.layoutH1.addWidget(ResFields.xemit)
+        self.layoutH1.addWidget(QLabel(f' \u00b1 '))
+        self.layoutH1.addWidget(ResFields.xemiterr)
+        self.layoutH1.addWidget(QLabel(f' \u03c0 mm mrad '))
+
 
         self.layoutV1.addLayout(self.layoutH2)
-        self.layoutH2.addWidget(QLabel('X-peaks'))
-        self.layoutH2.addWidget(ImFields.xpeaksIn)
-        self.layoutH2.addWidget(QLabel('Y-peaks'))
-        self.layoutH2.addWidget(ImFields.ypeaksIn)
+        self.layoutH2.addWidget(QLabel(f'\u03b5_y = '))
+        self.layoutH2.addWidget(ResFields.yemit)
+        self.layoutH2.addWidget(QLabel(f' \u00b1 '))
+        self.layoutH2.addWidget(ResFields.yemiterr)
+        self.layoutH2.addWidget(QLabel(f' \u03c0 mm mrad '))
 
+        self.layoutV1.addWidget(Twiss)
         self.layoutV1.addLayout(self.layoutH3)
-        self.layoutH3.addWidget(QLabel('Min X'))
-        self.layoutH3.addWidget(ImFields.xminIn)
-        self.layoutH3.addWidget(QLabel('Max X'))
-        self.layoutH3.addWidget(ImFields.xmaxIn)
+        self.layoutH3.addWidget(QLabel(f'\u03b1_x = '))
+        self.layoutH3.addWidget(ResFields.xalph)
+        self.layoutH3.addWidget(QLabel(f'\u03b1_y = '))
+        self.layoutH3.addWidget(ResFields.yalph)
 
-        self.layoutV1.addLayout(self.layoutH3b)
-        self.layoutH3b.addWidget(QLabel('Min Y'))
-        self.layoutH3b.addWidget(ImFields.yminIn)
-        self.layoutH3b.addWidget(QLabel('Max Y'))
-        self.layoutH3b.addWidget(ImFields.ymaxIn)
-        
         self.layoutV1.addLayout(self.layoutH4)
-        self.layoutH4.addWidget(FindPeaksPrompt)
-        self.layoutH4.addWidget(ReducePrompt)
+        self.layoutH4.addWidget(QLabel(f'\u03b2_x = '))
+        self.layoutH4.addWidget(ResFields.xbeta)
+        self.layoutH4.addWidget(QLabel(f'\u03b2_y = '))
+        self.layoutH4.addWidget(ResFields.ybeta)
+        
+        self.layoutV1.addLayout(self.layoutH5)
+        self.layoutH5.addWidget(QLabel(f'\u03b3_x = '))
+        self.layoutH5.addWidget(ResFields.xgamm)
+        self.layoutH5.addWidget(QLabel(f'\u03b3_y = '))
+        self.layoutH5.addWidget(ResFields.ygamm)
+
+        self.layoutV1.addWidget(saveDataPrompt)
 
 class y_peak_read(QLineEdit):
     def __init__(self):
