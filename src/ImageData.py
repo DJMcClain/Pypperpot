@@ -23,7 +23,7 @@ import Mainapp
 import MaskFields
 import ImageFields
 import Sliders
-
+import ResultFields
 
 # path = os.getcwd()
 path = 'D:/Workspace/Images/'
@@ -37,7 +37,9 @@ class ImageReader(QMainWindow):
     temperature = np.array([30,32,34,32,33,31,29,32,35,45])
     def __init__(self):
         super(ImageReader, self).__init__()
-        self.central_widget = QWidget() # A QWidget to work as Central Widget
+        self.central_widget = QFrame() # A QWidget to work as Central Widget
+        self.central_widget.setFrameStyle(QFrame.StyledPanel | QFrame.Sunken)
+        self.central_widget.setLineWidth(2)
         self.layoutG1 = QGridLayout() # Plots
         self.layoutGR00 = QHBoxLayout() # Plot Row 1
         self.layoutGR01 = QHBoxLayout() # Plot Row 2
@@ -46,6 +48,7 @@ class ImageReader(QMainWindow):
         self.layoutGC00 = QVBoxLayout() # Plot Row 1 column 1
         self.layoutGC01 = QVBoxLayout() # Plot Row 1 column 2
         self.setCentralWidget(self.central_widget)
+        self.ResFields = ResultFields.ResFields()
 
         ImageReader.Slider1 = Sliders.slider1() #Threshold
         ImageReader.Slider2 = Sliders.slider2() #Prominence
@@ -58,9 +61,13 @@ class ImageReader(QMainWindow):
         ImageReader.plot4 = pg.ImageView(view=pg.PlotItem())#ImageData.ImagePlot2(view=pg.PlotItem())
 
         self.central_widget.setLayout(self.layoutG1)
-        
-        self.layoutG1.addWidget(ImageReader.plot2, 1, 0)
-        self.layoutG1.addWidget(ImageReader.plot4, 1, 1)
+        self.layoutG1.setRowMinimumHeight(0,300)
+        self.layoutG1.setRowMinimumHeight(1,300)
+        self.layoutG1.setColumnMinimumWidth(0,450)
+        self.layoutG1.setColumnMinimumWidth(1,200)
+
+        self.layoutG1.addWidget(ImageReader.plot4, 1, 0)
+        self.layoutG1.addWidget(self.ResFields, 1, 1)
         self.layoutG1.addLayout(self.layoutGR00, 0, 0)
         self.layoutG1.addLayout(self.layoutGR01, 0, 1)
         self.layoutG1.addLayout(self.layoutGC10, 1, 0)
@@ -69,11 +76,11 @@ class ImageReader(QMainWindow):
         self.layoutGC00.addWidget(ImageReader.plot1)
         self.layoutGR00.addWidget(ImageReader.Slider2)
 
-        self.layoutGR01.addWidget(ImageReader.plot3)
-        self.layoutGR01.addWidget(ImageReader.slY)
+        self.layoutGR01.addWidget(ImageReader.plot2)
+        #self.layoutGR01.addWidget(ImageReader.slY)
 
-        self.layoutGC10.addWidget(ImageReader.plot2)
-        self.layoutGC10.addWidget(ImageReader.slX)
+        self.layoutGC10.addWidget(ImageReader.plot4)
+        #self.layoutGC10.addWidget(ImageReader.slX)
 
     def on_LoadIm_clicked():
         loadImageName = QFileDialog.getOpenFileName( caption="Open Image",directory=path, filter="Image Files (*.png *.jpg *.bmp *.csv *txt)")
@@ -122,7 +129,7 @@ class ImageReader(QMainWindow):
         xpeaks=[]
         ypeaks=[]
         for row in ImageData.imgData:
-            peaks = scipy.signal.find_peaks(row, height = ImageReader.threshold/2, prominence = 8)
+            peaks = scipy.signal.find_peaks(row, height = ImageReader.threshold/3, prominence = 8)
             if peaks[0].shape[0] != 0:
                 for peak in peaks[0]:
                     xpeaks.append(peak)
@@ -225,7 +232,7 @@ class ImageReader(QMainWindow):
         xpeaks=[]
         ypeaks=[]
         for row in ImageData.imgData:
-            peaks = scipy.signal.find_peaks(row, height = ImageReader.threshold/2, prominence = value)
+            peaks = scipy.signal.find_peaks(row, height = ImageReader.threshold/3, prominence = value)
             if peaks[0].shape[0] != 0:
                 for peak in peaks[0]:
                     xpeaks.append(peak)

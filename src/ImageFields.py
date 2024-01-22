@@ -57,7 +57,7 @@ class ImFields(QMainWindow):
         self.central_widget.setLayout(self.layoutV1)
         self.layoutV1.addLayout(self.layoutH1)
         self.layoutH1.addWidget(loadImagePrompt)
-        self.layoutH1.addWidget(saveImagePrompt)
+        #self.layoutH1.addWidget(saveImagePrompt)
 
         self.layoutV1.addLayout(self.layoutH2)
         self.layoutH2.addWidget(QLabel('X-peaks'))
