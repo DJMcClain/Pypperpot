@@ -396,7 +396,7 @@ class PeakByPeakFits():
         # TODO TEMPORARY, add controls for window fraction and sigL
         sigL = 0.05#mm
         windowfrac = 2
-        puncert = 0.005 #pix/mm
+        puncert = 0.0005 #pix/mm
         hole_err = 0.00005 #mm
 
         intX, PeakByPeakFits.sterxs, hole_x, PeakByPeakFits.xps, PeakByPeakFits.xs, PeakByPeakFits.xperr, stdx, intY, PeakByPeakFits.sterys, hole_y, PeakByPeakFits.yps, PeakByPeakFits.yperr, PeakByPeakFits.ys, stdy, mu4xs, mu4ys = PeakByPeakFits.FitterFunc(ImageData.x3s,ImageData.y3s, spot2, holes,windowfrac, sigL, hole_err,puncert)
