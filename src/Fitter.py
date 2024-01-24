@@ -34,13 +34,13 @@ def changeFitplots(value, isX):
     if isX:
         ImageData.ImageReader.plot2.clear()
         try:        
-            xprojInt,xprojMean,xprojSig,xprojY = MultiFits.fitter_func(ImageData.x3s[value:value+1],ImageData.y3s, ImageData.num_peaks_x,ImageData.imgData, math.ceil(ImageData.d/2), True, True)
+            xprojInt,xprojMean,xprojSig,xprojY = MultiFits.fitter_func(ImageData.x3s[value:value+1],ImageData.y3s, ImageData.num_peaks_x,ImageData.imgData, math.ceil(ImageData.d/ImageData.winfrac), True, True)
         except:
             print(f'no peak {value}')
     else:
         ImageData.ImageReader.plot3.clear()
         try:
-            yprojInt,yprojMean,yprojSig,yprojX = MultiFits.fitter_func(ImageData.y3s[value:value+1],ImageData.x3s, ImageData.num_peaks_y,ImageData.imgData, math.ceil(ImageData.d/2), False, True)
+            yprojInt,yprojMean,yprojSig,yprojX = MultiFits.fitter_func(ImageData.y3s[value:value+1],ImageData.x3s, ImageData.num_peaks_y,ImageData.imgData, math.ceil(ImageData.d/ImageData.winfrac), False, True)
         except:
             print(f'no peak {value}')
             
@@ -49,10 +49,10 @@ def changeFitplots(value, isX):
     bpen = pg.mkPen(color=(0, 0, 255))
     # ImageData.ImageReader.plot1.clear()
     ImageData.p4dots1 =  pg.ScatterPlotItem(x=ImageData.locsdf.X, y=ImageData.locsdf.Y, pen = 'c', symbol = 'o')
-    MultiFits.p4linev1 = pg.PlotCurveItem(x=[ImageData.x3s[value]-math.ceil(ImageData.d/2), ImageData.x3s[value]-math.ceil(ImageData.d/2)], y=[ImageData.ImageReader.min_y-ImageData.d,ImageData.ImageReader.max_y+ImageData.d], pen =  bpen)
-    MultiFits.p4linev2 = pg.PlotCurveItem(x=[ImageData.x3s[value]+math.ceil(ImageData.d/2), ImageData.x3s[value]+math.ceil(ImageData.d/2)], y=[ImageData.ImageReader.min_y-ImageData.d,ImageData.ImageReader.max_y+ImageData.d], pen =  bpen)
-    MultiFits.p4lineh1 = pg.PlotCurveItem(x=[ImageData.ImageReader.min_x-ImageData.d,ImageData.ImageReader.max_x+ImageData.d], y=[ImageData.y3s[value]-math.ceil(ImageData.d/2), ImageData.y3s[value]-math.ceil(ImageData.d/2)], pen = bpen)
-    MultiFits.p4lineh2 = pg.PlotCurveItem(x=[ImageData.ImageReader.min_x-ImageData.d,ImageData.ImageReader.max_x+ImageData.d], y=[ImageData.y3s[value]+math.ceil(ImageData.d/2), ImageData.y3s[value]+math.ceil(ImageData.d/2)], pen = bpen)
+    MultiFits.p4linev1 = pg.PlotCurveItem(x=[ImageData.x3s[value]-math.ceil(ImageData.d/ImageData.winfrac), ImageData.x3s[value]-math.ceil(ImageData.d/ImageData.winfrac)], y=[ImageData.ImageReader.min_y-ImageData.d,ImageData.ImageReader.max_y+ImageData.d], pen =  bpen)
+    MultiFits.p4linev2 = pg.PlotCurveItem(x=[ImageData.x3s[value]+math.ceil(ImageData.d/ImageData.winfrac), ImageData.x3s[value]+math.ceil(ImageData.d/ImageData.winfrac)], y=[ImageData.ImageReader.min_y-ImageData.d,ImageData.ImageReader.max_y+ImageData.d], pen =  bpen)
+    MultiFits.p4lineh1 = pg.PlotCurveItem(x=[ImageData.ImageReader.min_x-ImageData.d,ImageData.ImageReader.max_x+ImageData.d], y=[ImageData.y3s[value]-math.ceil(ImageData.d/ImageData.winfrac), ImageData.y3s[value]-math.ceil(ImageData.d/ImageData.winfrac)], pen = bpen)
+    MultiFits.p4lineh2 = pg.PlotCurveItem(x=[ImageData.ImageReader.min_x-ImageData.d,ImageData.ImageReader.max_x+ImageData.d], y=[ImageData.y3s[value]+math.ceil(ImageData.d/ImageData.winfrac), ImageData.y3s[value]+math.ceil(ImageData.d/ImageData.winfrac)], pen = bpen)
     # self.img = pg.ImageItem(image = ImageData.imgData)
     # self.p1view = ImageData.ImageReader.plot1.getView()
     ImageData.ImageReader.p4view.clear()
@@ -94,8 +94,8 @@ class MultiFits(QMainWindow):
         #         locs2.append([i*ImageData.d-ImageData.d*(MultiFits.n_holes-1)/2,j*ImageData.d-(ImageData.d*(ImageData.n_holes-1))/2])
         # locs2 = np.array(locs2).T
         
-        yprojInt,yprojMean,yprojSig,yprojX = MultiFits.fitter_func(ImageData.y3s,ImageData.x3s, ImageData.num_peaks_y,ImageData.imgData, math.ceil(ImageData.d/2), False, False)
-        xprojInt,xprojMean,xprojSig,xprojY = MultiFits.fitter_func(ImageData.x3s,ImageData.y3s, ImageData.num_peaks_x,ImageData.imgData, math.ceil(ImageData.d/2), True, False)
+        yprojInt,yprojMean,yprojSig,yprojX = MultiFits.fitter_func(ImageData.y3s,ImageData.x3s, ImageData.num_peaks_y,ImageData.imgData, math.ceil(ImageData.d/ImageData.winfrac), False, False)
+        xprojInt,xprojMean,xprojSig,xprojY = MultiFits.fitter_func(ImageData.x3s,ImageData.y3s, ImageData.num_peaks_x,ImageData.imgData, math.ceil(ImageData.d/ImageData.winfrac), True, False)
         MultiFits.Xprojdf = pd.DataFrame({'Ypos': xprojY, 'Mean': xprojMean, 'Sig': xprojSig,'Int': xprojInt})
         MultiFits.Yprojdf = pd.DataFrame({'Xpos': yprojX, 'Mean': yprojMean, 'Sig': yprojSig,'Int': yprojInt})
 
@@ -120,8 +120,8 @@ class MultiFits(QMainWindow):
         Intx = np.array(Intx)
         Sigx = np.array(Sigx)
         # MultiFits.locsdf = pd.DataFrame({'X':locs2[0]+ImageData.x_offset, 'Y':locs2[1]+ImageData.y_offset})
-        templocs = ImageData.locsdf[(ImageData.locsdf.X > min_x-ImageData.d/2) & (ImageData.locsdf.X < max_x+ImageData.d/2)]
-        templocs = templocs[(ImageData.locsdf.Y > min_y-ImageData.d/2) & (ImageData.locsdf.Y < max_y+ImageData.d/2)]
+        templocs = ImageData.locsdf[(ImageData.locsdf.X > min_x-ImageData.d/ImageData.winfrac) & (ImageData.locsdf.X < max_x+ImageData.d/ImageData.winfrac)]
+        templocs = templocs[(ImageData.locsdf.Y > min_y-ImageData.d/ImageData.winfrac) & (ImageData.locsdf.Y < max_y+ImageData.d/ImageData.winfrac)]
         print(templocs)
         print(f'templocs.X.to_numpy(),{templocs.X.to_numpy().shape[0]}')
         print(f'Meanx,{Meanx.shape[0]}')
@@ -408,11 +408,8 @@ class PeakByPeakFits():
         # locs2 = np.array(locs2).T
         #FitterFunc(x2s, y2s, spot2, holes, d, image, pixpermm, mask_to_screen, windowfrac, sigL, hole_err = 0)
         spot2, holes = PeakByPeakFits.Mapping()
-        # TODO TEMPORARY, add controls for window fraction
-        windowfrac = 2
 
-
-        intX, PeakByPeakFits.sterxs, hole_x, PeakByPeakFits.xps, PeakByPeakFits.xs, PeakByPeakFits.xperr, stdx, intY, PeakByPeakFits.sterys, hole_y, PeakByPeakFits.yps, PeakByPeakFits.yperr, PeakByPeakFits.ys, stdy, mu4xs, mu4ys = PeakByPeakFits.FitterFunc(ImageData.x3s,ImageData.y3s, spot2, holes,windowfrac, sigL, hole_err,puncert)
+        intX, PeakByPeakFits.sterxs, hole_x, PeakByPeakFits.xps, PeakByPeakFits.xs, PeakByPeakFits.xperr, stdx, intY, PeakByPeakFits.sterys, hole_y, PeakByPeakFits.yps, PeakByPeakFits.yperr, PeakByPeakFits.ys, stdy, mu4xs, mu4ys = PeakByPeakFits.FitterFunc(ImageData.x3s,ImageData.y3s, spot2, holes, sigL, hole_err,puncert)
         PeakByPeakFits.emitX, PeakByPeakFits.emitY, PeakByPeakFits.emitXerr, PeakByPeakFits.emitYerr = PeakByPeakFits.EmittanceFunction(intX, PeakByPeakFits.sterxs, hole_x, PeakByPeakFits.xps, PeakByPeakFits.xs, PeakByPeakFits.xperr, stdx,mu4xs, intY, PeakByPeakFits.sterys, hole_y, PeakByPeakFits.yps, PeakByPeakFits.yperr, PeakByPeakFits.ys, stdy, mu4ys, sigL, hole_err, puncert)
         image = ImageData.imgData
         x_offset = (image.shape[1])/2
@@ -620,13 +617,13 @@ class PeakByPeakFits():
         ster = stdv / np.sqrt(total)
         return total, mean, stdv, ster
 
-    def FitterFunc(x2s, y2s, spot2, holes, windowfrac, sigL, hole_err, puncert):
+    def FitterFunc(x2s, y2s, spot2, holes,  sigL, hole_err, puncert):
         d = ImageData.d 
         image = ImageData.imgData
         pixpermm = ImageData.pixpermm
         mask_to_screen = ImageData.mask_to_screen
 
-        pixs = math.ceil(d/windowfrac)
+        pixs = math.ceil(ImageData.d/ImageData.winfrac)
         xs = []
         ys = []
         hole_x = []
@@ -926,8 +923,8 @@ class PeakByPeakFits():
         alphX = -exp_xxp / emitX * np.pi
         betX = exp_x2 / emitX * np.pi
         gamX = exp_xp2 / emitX * np.pi
-        print(f"alpha = {alphX}")
-        print(f"beta = {betX}")
+        # print(f"alpha = {alphX}")
+        # print(f"beta = {betX}")
         ellipsexs = np.arange((min(xs)-x_offset)/pixpermm-2, (max(xs)-x_offset)/pixpermm+2, 0.05)
         ellipse1x = (np.sqrt(betX * emitX*np.pi - ellipsexs**2)-alphX*ellipsexs)/betX
         ellipse2x = (-np.sqrt(betX * emitX*np.pi - ellipsexs**2)-alphX*ellipsexs)/betX
@@ -1051,7 +1048,7 @@ class PeakByPeakFits():
         print(f'exp_x2:{exp_x2} +/- {sigexp_x2}')
         print(f'exp_xp2: {exp_xp2} +/- {sigexp_xp2}')
         print(f'exp_xxp: {exp_xxp} +/- {sigexp_xxp}')
-        print(sigexp_x2)
+        # print(sigexp_x2)
 #         sig_eps = 1/(2*eps_x) *np.sqrt(sig_xxp2s**2 + sigexp_xxp2**2)
         return sig_eps
     def on_SaveData_clicked(self):

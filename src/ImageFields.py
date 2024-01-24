@@ -34,6 +34,7 @@ class ImFields(QMainWindow):
         self.layoutH3 = QHBoxLayout() # max/min pixels
         self.layoutH3b = QHBoxLayout() # max/min pixels
         self.layoutH4 = QHBoxLayout() # Final Prompts
+        self.layoutH5 = QHBoxLayout() # Window Frac
         self.setCentralWidget(self.central_widget)
 
         loadImagePrompt = QPushButton('Load Image')
@@ -53,6 +54,8 @@ class ImFields(QMainWindow):
         ImFields.yminIn = y_min_read()
         ImFields.xmaxIn = x_max_read()
         ImFields.ymaxIn = y_max_read()
+
+        ImFields.winfrac = win_frac_read()
 
         self.central_widget.setLayout(self.layoutV1)
         self.layoutV1.addLayout(self.layoutH1)
@@ -80,6 +83,10 @@ class ImFields(QMainWindow):
         self.layoutV1.addLayout(self.layoutH4)
         self.layoutH4.addWidget(FindPeaksPrompt)
         self.layoutH4.addWidget(ReducePrompt)
+
+        self.layoutV1.addLayout(self.layoutH5)
+        self.layoutH5.addWidget(QLabel('Window Fraction 1/'))
+        self.layoutH5.addWidget(ImFields.winfrac)
 
 class y_peak_read(QLineEdit):
     def __init__(self):
@@ -266,4 +273,34 @@ class y_max_read(QLineEdit):
         # print("Text edited...")
         # print(s)
         return
+    
+class win_frac_read(QLineEdit):
+    def __init__(self):
+        QLineEdit.__init__(self)
+        self.setMaxLength(4)
+        self.setPlaceholderText("2")
+        self.returnPressed.connect(self.return_pressed)
+        self.selectionChanged.connect(self.selection_changed)
+        self.textChanged.connect(self.text_changed)
+        self.textEdited.connect(self.text_edited)
 
+    def on_button_clicked():
+        alert = QMessageBox()
+        alert.setText('You clicked the button!')
+        alert.exec()
+    
+    def return_pressed(self):
+        print("Return pressed!")
+        
+    def selection_changed(self):
+        return
+
+    def text_changed(self, s):
+        # print("Text changed...")
+        # print(s)
+        return
+    
+    def text_edited(self, s):
+        # print("Text edited...")
+        # print(s)
+        return

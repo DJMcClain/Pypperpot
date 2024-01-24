@@ -47,7 +47,7 @@ class MainWindow(QMainWindow):
         self.layoutH10 = QHBoxLayout() # Fit/Hand Fit
         self.setCentralWidget(self.central_widget)
 #button classes to be started
-
+        MainWindow.edgeboolbutt = QPushButton("Edge-Sensing Algorithm",self)
         multiFit = QPushButton('Multi Fit (Max 8 peaks)')
         pbpFit = QPushButton('Peak-By-Peak Fit')
         self.handfit = QPushButton('Hand Fit')
@@ -58,6 +58,9 @@ class MainWindow(QMainWindow):
         multiFit.clicked.connect(Fitter.MultiFits.on_MultiFit_clicked)
         pbpFit.clicked.connect(Fitter.PeakByPeakFits.on_pbpFit_clicked)
         self.handfit.clicked.connect(self.on_Hand_clicked)
+        MainWindow.edgeboolbutt.setCheckable(True)
+        MainWindow.edgeboolbutt.clicked.connect(self.edgeBoolClicked)
+        MainWindow.edgeboolbutt.setStyleSheet("background-color : lightgrey")
 
 #Set Highest layer layout and work down
         self.central_widget.setLayout(self.layoutH0)
@@ -67,6 +70,8 @@ class MainWindow(QMainWindow):
         self.layoutV0.addWidget(self.layoutG1)
 
         self.layoutV1.addWidget(self.ImgFields)
+        self.layoutV1.addWidget(self.ImgFields)
+        self.layoutV1.addWidget(MainWindow.edgeboolbutt)
         self.layoutV1.addWidget(self.MskFields)
 
         self.layoutV1.addLayout(self.layoutH10)
@@ -225,4 +230,16 @@ class MainWindow(QMainWindow):
         self.w2 = HandFitWindow.Handfitting(self.Xprojdf, self.Yprojdf, ImageData.imgData, ImageData.ImageReader.threshold, self.d, self.x3s, self.y3s)
         self.w2.show()
 
+    def edgeBoolClicked(self):
+        # if button is checked
+        if MainWindow.edgeboolbutt.isChecked():
+            # setting background color to light-blue
+            MainWindow.edgeboolbutt.setStyleSheet("background-color : lightblue")
+            MainWindow.edgeboolbutt.setText("Peak-Sensing Algorithm")
 
+        # if it is unchecked
+        else:
+            # set background color back to light-grey
+            MainWindow.edgeboolbutt.setStyleSheet("background-color : lightgrey")
+            MainWindow.edgeboolbutt.setText("Edge-Sensing Algorithm")
+ 

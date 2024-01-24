@@ -113,14 +113,13 @@ class ImageReader(QMainWindow):
         ImageReader.img2 = pg.ImageItem(image = ImageData.imgData) 
         ImageReader.p4view = ImageReader.plot4.getView()
         ImageReader.p4view.addItem(ImageReader.img2)
-
+        ImageReader.threshold = filters.threshold_otsu(ImageData.imgData)
+        ImageReader.binary_image = ImageData.imgData > ImageReader.threshold/2
         ImageReader.p1view = ImageReader.plot1.getView()
         ImageReader.p1view.addItem(ImageReader.img)
 
 
     def on_FindPeaks_clicked():
-        ImageReader.threshold = filters.threshold_otsu(ImageData.imgData)
-        ImageReader.binary_image = ImageData.imgData > ImageReader.threshold/2
         ImageReader.edges = feature.canny(ImageReader.binary_image, sigma=5)
         ImageReader.outlines = np.zeros((*ImageReader.edges.shape,4))
         ImageReader.outlines[:, :, 0] = 255 * ImageReader.edges
@@ -297,7 +296,6 @@ class ImageReader(QMainWindow):
             ImageData.mask_to_screen = float(MaskFields.MaskWidget.Mask2ScrnIn.text())
             ImageData.pixpermm = float(MaskFields.MaskWidget.Calibration.text())
             ImageData.d = (ImageData.hole_separation*ImageData.pixpermm)/2+ImageData.hole_diameter*ImageData.pixpermm
-
             ImageData.reduced = True
         except:
             msgBox = QMessageBox()
@@ -306,7 +304,11 @@ class ImageReader(QMainWindow):
             msgBox.setIcon(QMessageBox.Critical)
             msgBox.setText('Fill out mask information before reducing peaks')
             msgBox.exec_()
-
+        try:
+            ImageData.winfrac = float(ImageFields.ImFields.winfrac.text())
+        except:
+            print("Field Failure, Defaulting to 2")
+            ImageData.winfrac = 2
         y1s = []
         y2s = []
         x1s = []
@@ -318,10 +320,27 @@ class ImageReader(QMainWindow):
     
         y1s = np.array(y1s)
         x1s = np.array(x1s)
-        x2s, y2s = ImageReader.cutdown(x1s,y1s,  math.ceil(ImageData.d/2))
+        print(f'edges x1: {x1s.shape[0]}')
+        x2s, y2s = ImageReader.cutdown(x1s,y1s,  math.ceil(ImageData.d/9999))
+        print(f'edges x2: {x2s.shape[0]}')
+        print(f'peaks x1: {ImageReader.xpeaks.shape[0]}')
+        x1s,y1s = ImageReader.cutdown(ImageReader.xpeaks,ImageReader.ypeaks,  math.ceil(ImageData.d/9999))
+        print(f'peaks x2: {x1s.shape[0]}')
         ImageData.y3s = []
         ImageData.x3s = []
-        ImageData.x3s, ImageData.y3s = ImageReader.cutdown(x2s,y2s,  math.ceil(ImageData.d/2))
+        ImageData.x3s, ImageData.y3s = ImageReader.cutdown(x2s,y2s,  math.ceil(ImageData.d/ImageData.winfrac))
+        print(f'edges x3: {ImageData.x3s.shape[0]}')
+        x2s, y2s = ImageReader.cutdown(x1s,y1s,  math.ceil(ImageData.d/ImageData.winfrac))
+        print(f'peaks x3: {x2s.shape[0]}')
+        peakbool = Mainapp.MainWindow.edgeboolbutt.isChecked()
+        # print(peakbool)
+        if peakbool == True:
+            unusedSpots = np.array(np.meshgrid(ImageData.x3s, ImageData.y3s)).T.reshape(-1,2).T  
+            ImageData.x3s, ImageData.y3s = ImageReader.cutdown(x2s,y2s,  math.ceil(ImageData.d/ImageData.winfrac))
+        else:
+            unusedSpots = np.array(np.meshgrid(x2s, y2s)).T.reshape(-1,2).T
+        fitSpots = np.array(np.meshgrid(ImageData.x3s, ImageData.y3s)).T.reshape(-1,2).T
+          
         ImageFields.ImFields.ypeaksIn.setText(f'{ImageData.y3s.shape[0]}')
         ImageFields.ImFields.xpeaksIn.setText(f'{ImageData.x3s.shape[0]}')
         locs2 =[]
@@ -330,7 +349,12 @@ class ImageReader(QMainWindow):
                 locs2.append([i*ImageData.d-ImageData.d*(ImageData.n_holes-1)/2,j*ImageData.d-(ImageData.d*(ImageData.n_holes-1))/2])
         locs2 = np.array(locs2).T
         ImageData.locsdf = pd.DataFrame({'X':locs2[0]+ImageData.x_offset, 'Y':locs2[1]+ImageData.y_offset})
+
+        # print(fitSpots)
+        # print(fitSpots[0])
         ImageData.p4dots1 =  pg.ScatterPlotItem(x=ImageData.locsdf.X, y=ImageData.locsdf.Y, pen = 'c', symbol = 'o')
+        ImageData.p4spots1 =  pg.ScatterPlotItem(x=fitSpots[1],y=fitSpots[0], pen = 'g', symbol = 'x')
+        ImageData.p4spots2 =  pg.ScatterPlotItem(x=unusedSpots[1],y=unusedSpots[0], pen = 'r', symbol = 'x')
         try:
             ImageReader.p4view.clear()
         except:
@@ -338,7 +362,9 @@ class ImageReader(QMainWindow):
         ImageReader.p4view = ImageReader.plot4.getView()
         ImageReader.p4view.addItem(ImageReader.img2)
         ImageReader.p4view.addItem(ImageData.p4dots1)
-
+        ImageReader.p4view.addItem(ImageData.p4spots1)
+        ImageReader.p4view.addItem(ImageData.p4spots2)
+        
     def cutdown( xs, ys, gate):
         arr = np.copy(ys)
         for i in range(arr.shape[0]):
