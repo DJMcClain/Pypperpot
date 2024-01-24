@@ -378,6 +378,21 @@ class PeakByPeakFits():
         ImageData.hole_separation = float(MaskFields.MaskWidget.sepIn.text())
         ImageData.mask_to_screen = float(MaskFields.MaskWidget.Mask2ScrnIn.text())
         ImageData.pixpermm = float(MaskFields.MaskWidget.Calibration.text())
+        try:
+            puncert = float(MaskFields.MaskWidget.puncert.text()) #pix/mm
+        except:
+            puncert = 0.0005
+        try:
+            sigL = float(MaskFields.MaskWidget.sigL.text())#mm
+        except:
+            sigL = 0.05
+        try:
+            hole_err = float(MaskFields.MaskWidget.hole_err.text())#mm
+            hole_err = ImageData.hole_separation * ImageData.pixpermm * np.sqrt((puncert/ImageData.pixpermm)**2+(hole_err/ImageData.hole_separation)**2)#px
+        except:
+            hole_err = 0.00005#mm
+            hole_err = ImageData.hole_separation * ImageData.pixpermm * np.sqrt((puncert/ImageData.pixpermm)**2+(hole_err/ImageData.hole_separation)**2)#px
+
         min_x = int(ImageFields.ImFields.xminIn.text())
         min_y = int(ImageFields.ImFields.yminIn.text())
         max_x = int(ImageFields.ImFields.xmaxIn.text())
@@ -393,20 +408,18 @@ class PeakByPeakFits():
         # locs2 = np.array(locs2).T
         #FitterFunc(x2s, y2s, spot2, holes, d, image, pixpermm, mask_to_screen, windowfrac, sigL, hole_err = 0)
         spot2, holes = PeakByPeakFits.Mapping()
-        # TODO TEMPORARY, add controls for window fraction and sigL
-        sigL = 0.05#mm
+        # TODO TEMPORARY, add controls for window fraction
         windowfrac = 2
-        puncert = 0.005 #pix/mm
-        hole_err = 0.00005 #mm
+
 
         intX, PeakByPeakFits.sterxs, hole_x, PeakByPeakFits.xps, PeakByPeakFits.xs, PeakByPeakFits.xperr, stdx, intY, PeakByPeakFits.sterys, hole_y, PeakByPeakFits.yps, PeakByPeakFits.yperr, PeakByPeakFits.ys, stdy, mu4xs, mu4ys = PeakByPeakFits.FitterFunc(ImageData.x3s,ImageData.y3s, spot2, holes,windowfrac, sigL, hole_err,puncert)
-        PeakByPeakFits.emitX, PeakByPeakFits.emitY, PeakByPeakFits.emitXerr, PeakByPeakFits.emitYerr = PeakByPeakFits.EmittanceFunction(intX, PeakByPeakFits.sterxs, hole_x, PeakByPeakFits.xps, PeakByPeakFits.xs, PeakByPeakFits.xperr, stdx,mu4xs, intY, PeakByPeakFits.sterys, hole_y, PeakByPeakFits.yps, PeakByPeakFits.yperr, PeakByPeakFits.ys, stdy, mu4ys, sigL)
+        PeakByPeakFits.emitX, PeakByPeakFits.emitY, PeakByPeakFits.emitXerr, PeakByPeakFits.emitYerr = PeakByPeakFits.EmittanceFunction(intX, PeakByPeakFits.sterxs, hole_x, PeakByPeakFits.xps, PeakByPeakFits.xs, PeakByPeakFits.xperr, stdx,mu4xs, intY, PeakByPeakFits.sterys, hole_y, PeakByPeakFits.yps, PeakByPeakFits.yperr, PeakByPeakFits.ys, stdy, mu4ys, sigL, hole_err, puncert)
         image = ImageData.imgData
         x_offset = (image.shape[1])/2
         y_offset = (image.shape[0])/2
         pixpermm = ImageData.pixpermm
-        PeakByPeakFits.resultsdfx = pd.DataFrame({'X(mm)':(PeakByPeakFits.xs-x_offset)/pixpermm ,  "X'(mrad)":PeakByPeakFits.xps,  "Xerr":PeakByPeakFits.sterxs/pixpermm, "X'err":PeakByPeakFits.xperr})
-        PeakByPeakFits.resultsdfy = pd.DataFrame({'Y(mm)':(PeakByPeakFits.ys-y_offset)/pixpermm ,  "Y'(mrad)":PeakByPeakFits.yps,  "Yerr":PeakByPeakFits.sterys/pixpermm, "Y'err":PeakByPeakFits.yperr})            
+        PeakByPeakFits.resultsdfx = pd.DataFrame({'X(mm)':(PeakByPeakFits.xs-x_offset)/pixpermm ,  "X'(mrad)":PeakByPeakFits.xps,  "Xerr":PeakByPeakFits.sterxs/pixpermm, "X'err":PeakByPeakFits.xperr,"IntX":intX})
+        PeakByPeakFits.resultsdfy = pd.DataFrame({'Y(mm)':(PeakByPeakFits.ys-y_offset)/pixpermm ,  "Y'(mrad)":PeakByPeakFits.yps,  "Yerr":PeakByPeakFits.sterys/pixpermm, "Y'err":PeakByPeakFits.yperr,"IntY":intY})            
         
        # MultiFits.Xprojdf = pd.DataFrame({'Ypos': hole_y, 'Mean': PeakByPeakFits.xs, 'Sig': stdx,'Int': intX})
        # MultiFits.Yprojdf = pd.DataFrame({'Xpos': hole_x, 'Mean': PeakByPeakFits.ys, 'Sig': stdy,'Int': intY})
@@ -892,7 +905,7 @@ class PeakByPeakFits():
 
         return intX, sterxs, hole_x, xps, xs, xperr, stdx, intY, sterys, hole_y, yps, yperr, ys, stdy, mu4xs, mu4ys
 
-    def EmittanceFunction(intX, sterxs, hole_x, xps, xs, xperr, stdx, mu4xs, intY, sterys, hole_y, yps, yperr, ys, stdy, mu4ys, sigL):
+    def EmittanceFunction(intX, sterxs, hole_x, xps, xs, xperr, stdx, mu4xs, intY, sterys, hole_y, yps, yperr, ys, stdy, mu4ys, sigL, hole_err, puncert):
         pixpermm = ImageData.pixpermm
         mask_to_screen = ImageData.mask_to_screen
         image = ImageData.imgData
@@ -918,7 +931,7 @@ class PeakByPeakFits():
         ellipsexs = np.arange((min(xs)-x_offset)/pixpermm-2, (max(xs)-x_offset)/pixpermm+2, 0.05)
         ellipse1x = (np.sqrt(betX * emitX*np.pi - ellipsexs**2)-alphX*ellipsexs)/betX
         ellipse2x = (-np.sqrt(betX * emitX*np.pi - ellipsexs**2)-alphX*ellipsexs)/betX
-        emitXerr = PeakByPeakFits.EmittanceUncertaintyFunc(intX, sterxs, hole_x, xps, xs, xperr, stdx, meanXtot2, meanXp2, exp_x2, exp_xp2, exp_xxp, mask_to_screen, sigL, mu4xs, emitX, pixpermm, x_offset)
+        emitXerr = PeakByPeakFits.EmittanceUncertaintyFunc(intX, sterxs, hole_x, xps, xs, xperr, stdx, meanXtot2, meanXp2, exp_x2, exp_xp2, exp_xxp, mask_to_screen, sigL, mu4xs, emitX, pixpermm, x_offset, hole_err, puncert)
         exp_y2 =  np.sum(intY * (hole_y - meanYtot2)**2/pixpermm**2)/np.sum((intY))#mm
         exp_yp2 = np.sum((intY *(np.arctan(sterys/(mask_to_screen*pixpermm))*1000)**2+intY*(yps - meanYp2)**2))/np.sum((intY))#mrad
         exp_yyp = ((np.sum(intY*hole_y*yps)-(np.sum(intY)*meanYp2*meanYtot2))/(pixpermm))/np.sum((intY))#mmmrad
@@ -929,7 +942,7 @@ class PeakByPeakFits():
         ellipseys = np.arange((min(ys)-y_offset)/pixpermm-2, (max(ys)-y_offset)/pixpermm+2, 0.05)
         ellipse1y = (np.sqrt(betY * emitY*np.pi - ellipseys**2)-alphY*ellipseys)/betY
         ellipse2y = (-np.sqrt(betY * emitY*np.pi - ellipseys**2)-alphY*ellipseys)/betY
-        emitYerr = PeakByPeakFits.EmittanceUncertaintyFunc(intY, sterys, hole_y, yps, ys, yperr, stdy, meanYtot2, meanYp2, exp_y2, exp_yp2, exp_yyp, mask_to_screen, sigL, mu4ys, emitY,pixpermm, y_offset)
+        emitYerr = PeakByPeakFits.EmittanceUncertaintyFunc(intY, sterys, hole_y, yps, ys, yperr, stdy, meanYtot2, meanYp2, exp_y2, exp_yp2, exp_yyp, mask_to_screen, sigL, mu4ys, emitY,pixpermm, y_offset, hole_err, puncert)
         ImageData.ImageReader.plot2.clear()
         ImageData.ImageReader.plot3.clear()
         ImageData.ImageReader.plot2.addLine(x=None, y=0, pen=pg.mkPen('k', width=1))
@@ -991,12 +1004,12 @@ class PeakByPeakFits():
 
         return emitX, emitY, emitXerr, emitYerr
 
-    def EmittanceUncertaintyFunc(intX, sterxs, hole_x, xps, xs, xperr, stdx, meanXtot, meanXp, exp_x2, exp_xp2, exp_xxp, L, sigL, mu4x, eps_x,pixpermm, offset, hole_err = 0.00005, puncert = 0):
+    def EmittanceUncertaintyFunc(intX, sterxs, hole_x, xps, xs, xperr, stdx, meanXtot, meanXp, exp_x2, exp_xp2, exp_xxp, L, sigL, mu4x, eps_x,pixpermm, offset, hole_err, puncert):
         #sig_<x^2>
         meanXtot = meanXtot-offset
         hole_x = hole_x - offset+0.00000000001#odd masks have holes at the center, this is to prevent nans in sigxbar
         xs = xs - offset
-        sighij = hole_err#TODO fix should be in pix #hole_x*pixpermm*np.sqrt((hole_err/hole_x)**2+(puncert/pixpermm)**2)#(1.2 Known sig_hij) mm
+        sighij = hole_err#hole_x/pixpermm*np.sqrt((hole_err/hole_x)**2+(puncert/pixpermm)**2)#(1.2 Known sig_hij) px
         sigxbar = meanXtot * np.sqrt(1/np.sum(intX)+np.sum((hole_x)**2 * intX**2 * (1/intX + sighij**2/(hole_x)**2)) / np.sum((hole_x) * intX)**2)#pix good (3)
         
         sigNp2 = np.sum(intX) * pixpermm**2 * np.sqrt(1/np.sum(intX)+4*puncert**2/pixpermm**2) #(6)(pix/mm)^2
