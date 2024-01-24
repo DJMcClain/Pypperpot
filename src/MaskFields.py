@@ -90,22 +90,26 @@ class MaskWidget(QMainWindow):
         print(loadMaskName[0])
         file = open(loadMaskName[0], 'r')
         data = list(csv.reader(file, delimiter=","))
-        print(data[0][0])
-        print(data[0][1])
-        print(data[0][2])
-        print(data[0][3])
-        print(data[0][4])
+        # print(data[0][0])
+        # print(data[0][1])
+        # print(data[0][2])
+        # print(data[0][3])
+        # print(data[0][4])
+        #print(data)
         self.numHoles.setText(data[0][0])
         self.diamIn.setText(data[0][1])
         self.sepIn.setText(data[0][2])
         self.Mask2ScrnIn.setText(data[0][3])
         self.Calibration.setText(data[0][4])
         try:
-            self.sepIn.setText(data[1][0])
-            self.Mask2ScrnIn.setText(data[1][1])
-            self.Calibration.setText(data[1][2])
+            self.hole_err.setText(data[2][0])
+            self.sigL.setText(data[2][1])
+            self.puncert.setText(data[2][2])
         except:
             print('no errors in file')
+            self.hole_err.setText('')
+            self.sigL.setText('')
+            self.puncert.setText('')
         file.close()
 
     def on_SaveMa_clicked(self):
@@ -268,7 +272,7 @@ class hole_num_read(QLineEdit):
 class calib_err_read(QLineEdit):
     def __init__(self):
         QLineEdit.__init__(self)
-        self.setMaxLength(6)
+        self.setMaxLength(8)
         self.setPlaceholderText("0.0005")
         self.returnPressed.connect(self.return_pressed)
         self.selectionChanged.connect(self.selection_changed)
@@ -299,7 +303,7 @@ class calib_err_read(QLineEdit):
 class hole_err_read(QLineEdit):
     def __init__(self):
         QLineEdit.__init__(self)
-        self.setMaxLength(6)
+        self.setMaxLength(8)
         self.setPlaceholderText("0.00005")
         self.returnPressed.connect(self.return_pressed)
         self.selectionChanged.connect(self.selection_changed)
@@ -326,7 +330,7 @@ class hole_err_read(QLineEdit):
 class mask2Scrn_err_read(QLineEdit):
     def __init__(self):
         QLineEdit.__init__(self)
-        self.setMaxLength(6)
+        self.setMaxLength(8)
         self.setPlaceholderText("0.05")
         self.returnPressed.connect(self.return_pressed)
         self.selectionChanged.connect(self.selection_changed)
