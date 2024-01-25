@@ -30,16 +30,16 @@ threshbool = False
 class slider1(QWidget):#Threshold
     def __init__(self):
         QWidget.__init__(self)
-        self.setFixedHeight(50)
-        self.layoutS0 = QHBoxLayout()
+        # self.setFixedWidth(40)#Height 50
+        self.layoutS0 = QVBoxLayout()#Hbox
         self.setLayout(self.layoutS0)
 
         #Slider
-        self.sl = QSlider(Qt.Horizontal)
+        self.sl = QSlider(Qt.Vertical)#Horizontal
         self.sl.setMinimum(1)
         self.sl.setMaximum(10)
         self.sl.setValue(5)
-        self.sl.setTickPosition(QSlider.TicksBelow)
+        self.sl.setTickPosition(QSlider.TicksRight)#Below
         self.sl.setTickInterval(1)
 
         #Label
@@ -53,8 +53,9 @@ class slider1(QWidget):#Threshold
         self.slValue.returnPressed.connect(self.return_pressed)
         self.sl.valueChanged.connect(self.changeSlider)
         #Format
-        self.layoutS0.addWidget(self.slValue)
+        self.layoutS0.addWidget(QLabel('Threshold'))
         self.layoutS0.addWidget(self.sl)
+        self.layoutS0.addWidget(self.slValue)
 
     def return_pressed(self):
         s = int(self.slValue.text())
@@ -77,17 +78,18 @@ class slider1(QWidget):#Threshold
 class slider2(QWidget):#Prominence
     def __init__(self):
         QWidget.__init__(self)
-        self.setFixedWidth(50)
+        # self.setFixedWidth(40)
         self.layoutS0 = QVBoxLayout()
         self.setLayout(self.layoutS0)
 
         #Slider
         self.sl = QSlider(Qt.Vertical)
         self.sl.setMinimum(1)
-        self.sl.setMaximum(10)
+        self.sl.setMaximum(100)
         self.sl.setValue(5)
         self.sl.setTickPosition(QSlider.TicksRight)
-        self.sl.setTickInterval(1)
+        self.sl.setTickInterval(5)
+        # self.sl.setAlignment(Qt.AlignCenter)
 
         #Label
         self.slValue = QLineEdit()
@@ -100,7 +102,7 @@ class slider2(QWidget):#Prominence
         self.slValue.returnPressed.connect(self.return_pressed)
         self.sl.valueChanged.connect(self.changeSlider)
         #Format
-        
+        self.layoutS0.addWidget(QLabel('Prominence'))
         self.layoutS0.addWidget(self.sl)
         self.layoutS0.addWidget(self.slValue)
 
@@ -125,7 +127,7 @@ class slider2(QWidget):#Prominence
 class slider3(QWidget):#Y
     def __init__(self):
         QWidget.__init__(self)
-        self.setFixedWidth(50)
+        # self.setFixedWidth(50)
         self.layoutS0 = QVBoxLayout()
         self.setLayout(self.layoutS0)
 
@@ -136,6 +138,7 @@ class slider3(QWidget):#Y
         self.sl.setValue(5)
         self.sl.setTickPosition(QSlider.TicksRight)
         self.sl.setTickInterval(1)
+        # self.sl.setAlignment(Qt.AlignCenter)
 
         #Label
         self.slValue = QLineEdit()

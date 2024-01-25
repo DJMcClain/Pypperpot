@@ -81,7 +81,7 @@ class ImFields(QMainWindow):
         self.layoutH3b.addWidget(ImFields.ymaxIn)
         
         self.layoutV1.addLayout(self.layoutH4)
-        self.layoutH4.addWidget(FindPeaksPrompt)
+        # self.layoutH4.addWidget(FindPeaksPrompt)
         self.layoutH4.addWidget(ReducePrompt)
 
         self.layoutV1.addLayout(self.layoutH5)
