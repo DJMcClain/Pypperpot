@@ -85,7 +85,7 @@ class slider2(QWidget):#Prominence
         #Slider
         self.sl = QSlider(Qt.Vertical)
         self.sl.setMinimum(1)
-        self.sl.setMaximum(100)
+        self.sl.setMaximum(20)
         self.sl.setValue(5)
         self.sl.setTickPosition(QSlider.TicksRight)
         self.sl.setTickInterval(5)

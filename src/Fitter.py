@@ -562,7 +562,7 @@ class PeakByPeakFits():
         # print(hole2[(hole3.T[0]==0) & (hole3.T[1]==0)])
         for i in np.unique(spot3).astype(int):
             for j in np.unique(spot3).astype(int):
-                print(i,j)
+                # print(i,j)
                 try:
                     spot4[(spot3.T[0]==i) & (spot3.T[1]==j)] = spot2[(spot3.T[0]==i) & (spot3.T[1]==j)]
                     hole4[(spot3.T[0]==i) & (spot3.T[1]==j)] = hole2[(hole3.T[0]==i) & (hole3.T[1]==j)]
@@ -669,13 +669,13 @@ class PeakByPeakFits():
     #         print(f'hole position: x = {holex}, y = {holey}')
     #         print(f'stdv: x = {stdvx:.2f}, y = {stdvy:.2f}')
             try:
-    #             print('Resituate')
-                x = round(meanx+x-tempx.shape[0]/2)
+                # print('Resituate')
+                x = round(meanx+x-tempx.shape[0]/2)#mean within the window moved to the spot position with a zeroed image center
                 y = round(meany+y-tempy.shape[0]/2)
                 data = np.array(image[y-pixs:y+ pixs,x-pixs:x+pixs])
                 tempx = np.arange(data.shape[1])
                 tempy = np.arange(data.shape[0])
-                flimx = np.arange(tempx.min()+0.00, tempx.max()+1.0,1)
+                flimx = np.arange(tempx.min()+0.00, tempx.max()+1.00,1)
                 flimy = np.arange(tempy.min()+0.00, tempy.max()+1.00,1)
                 for i in range(tempy.shape[0]):
                     tempy[i] = sum(data[:,i])
@@ -688,8 +688,10 @@ class PeakByPeakFits():
     #             print(f'hole position: x = {holex}, y = {holey}')
     #             print(f'stdv: x = {stdvx:.2f}, y = {stdvy:.2f}')
             except:
-                print('No resituation, Nan present')
-            if totx >=150:
+                print('No resituation, Nan present') #there was not a peak here
+
+
+            if totx >=150:#make this threshold accessible?
 
                 guessx = [totx,meanx, stdvx,0]
                 guessy = [toty,meany, stdvy,0]

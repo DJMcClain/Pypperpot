@@ -58,10 +58,18 @@ class ImFields(QMainWindow):
         ImFields.winfrac = win_frac_read()
 
         self.central_widget.setLayout(self.layoutV1)
-        self.layoutV1.addLayout(self.layoutH1)
-        self.layoutH1.addWidget(loadImagePrompt)
+        # self.layoutV1.addLayout(self.layoutH1)
+        # self.layoutH1.addWidget(loadImagePrompt)
         #self.layoutH1.addWidget(saveImagePrompt)
 
+        self.layoutV1.addLayout(self.layoutH5)
+        self.layoutH5.addWidget(QLabel('Window Fraction 1/'))
+        self.layoutH5.addWidget(ImFields.winfrac)
+
+        self.layoutV1.addLayout(self.layoutH4)
+        # self.layoutH4.addWidget(FindPeaksPrompt)
+        self.layoutH4.addWidget(ReducePrompt)
+        
         self.layoutV1.addLayout(self.layoutH2)
         self.layoutH2.addWidget(QLabel('X-peaks'))
         self.layoutH2.addWidget(ImFields.xpeaksIn)
@@ -80,13 +88,8 @@ class ImFields(QMainWindow):
         self.layoutH3b.addWidget(QLabel('Max Y'))
         self.layoutH3b.addWidget(ImFields.ymaxIn)
         
-        self.layoutV1.addLayout(self.layoutH4)
-        # self.layoutH4.addWidget(FindPeaksPrompt)
-        self.layoutH4.addWidget(ReducePrompt)
 
-        self.layoutV1.addLayout(self.layoutH5)
-        self.layoutH5.addWidget(QLabel('Window Fraction 1/'))
-        self.layoutH5.addWidget(ImFields.winfrac)
+
 
 class y_peak_read(QLineEdit):
     def __init__(self):

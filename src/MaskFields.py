@@ -31,6 +31,7 @@ class MaskWidget(QMainWindow):
         super(MaskWidget, self).__init__()
         self.central_widget = QWidget()
         self.layoutV1 = QVBoxLayout() # File Params column
+        self.layoutH1 = QHBoxLayout() # Load/Save Image
         self.layoutH4 = QHBoxLayout() # Save/Load Mask
         self.layoutH5 = QHBoxLayout() # Number of holes in mask
         self.layoutH6 = QHBoxLayout() # Hole Diameter
@@ -53,7 +54,14 @@ class MaskWidget(QMainWindow):
         loadMaskPrompt.clicked.connect(self.on_LoadMa_clicked)
         saveMaskPrompt.clicked.connect(self.on_SaveMa_clicked)
 
+        loadImagePrompt = QPushButton('Load Image')
+        saveImagePrompt = QPushButton('*Save Image*')
+        loadImagePrompt.clicked.connect(ImageData.ImageReader.on_LoadIm_clicked)
+        saveImagePrompt.clicked.connect(ImageData.ImageReader.on_SaveIm_clicked)
+
         self.central_widget.setLayout(self.layoutV1)
+        self.layoutV1.addLayout(self.layoutH1)
+        self.layoutH1.addWidget(loadImagePrompt)
         self.layoutV1.addLayout(self.layoutH4)
         self.layoutH4.addWidget(QLabel('Mask'))
         self.layoutH4.addWidget(loadMaskPrompt)

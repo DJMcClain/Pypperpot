@@ -68,11 +68,12 @@ class MainWindow(QMainWindow):
         self.layoutH0.addLayout(self.layoutV0,9)#column 2
 
         self.layoutV0.addWidget(self.layoutG1)
-
-        self.layoutV1.addWidget(self.ImgFields)
-        self.layoutV1.addWidget(self.ImgFields)
-        self.layoutV1.addWidget(MainWindow.edgeboolbutt)
+        
+        self.layoutV1.addWidget(self.ImgFields)#invisible?
         self.layoutV1.addWidget(self.MskFields)
+        self.layoutV1.addWidget(MainWindow.edgeboolbutt)
+        self.layoutV1.addWidget(self.ImgFields)
+        
 
         self.layoutV1.addLayout(self.layoutH10)
         #self.layoutH10.addWidget(multiFit)
