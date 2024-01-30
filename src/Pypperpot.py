@@ -3,7 +3,7 @@ import sys
 import Mainapp
 
 app = QApplication(sys.argv)
-app.setStyle('Oxygen')
+app.setStyle('Fusion')
 w = Mainapp.MainWindow()
 w.show()
 app.exec()

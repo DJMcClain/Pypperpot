@@ -46,6 +46,7 @@ class MainWindow(QMainWindow):
         self.MskFields = MaskFields.MaskWidget()
         self.layoutH10 = QHBoxLayout() # Fit/Hand Fit
         self.setCentralWidget(self.central_widget)
+        # self.central_widget.setStyleSheet("background-color : lightgrey")
 #button classes to be started
         MainWindow.edgeboolbutt = QPushButton("Edge-Sensing Algorithm",self)
         multiFit = QPushButton('Multi Fit (Max 8 peaks)')

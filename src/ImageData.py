@@ -47,12 +47,12 @@ class ImageReader(QMainWindow):
         self.layoutH1 = QHBoxLayout() #Sliders
         self.layoutV2 = QVBoxLayout() #Threshold
         self.layoutV3 = QVBoxLayout() #Prominence
-        self.layoutGR00 = QHBoxLayout() # Plot Row 1
-        self.layoutGR01 = QHBoxLayout() # Plot Row 2
-        self.layoutGC10 = QVBoxLayout() # Plot Row 2 column 1
-        self.layoutGC11 = QVBoxLayout() # Plot Row 2 column 2
-        self.layoutGC00 = QVBoxLayout() # Plot Row 1 column 1
-        self.layoutGC01 = QVBoxLayout() # Plot Row 1 column 2
+        # self.layoutGR00 = QHBoxLayout() # Plot Row 1
+        # self.layoutGR01 = QHBoxLayout() # Plot Row 2
+        # self.layoutGC10 = QVBoxLayout() # Plot Row 2 column 1
+        # self.layoutGC11 = QVBoxLayout() # Plot Row 2 column 2
+        # self.layoutGC00 = QVBoxLayout() # Plot Row 1 column 1
+        # self.layoutGC01 = QVBoxLayout() # Plot Row 1 column 2
         self.setCentralWidget(self.central_widget)
 
         self.ResFields = ResultFields.ResFields()
@@ -60,8 +60,6 @@ class ImageReader(QMainWindow):
         self.promBox = QFrame()
         ImageReader.Slider1 = Sliders.slider1() #Threshold
         ImageReader.Slider2 = Sliders.slider2() #Prominence
-        ImageReader.slY = Sliders.slider3()
-        ImageReader.slX = Sliders.slider4()
 
         ImageReader.plot2 = ImageData.xProjection()
         ImageReader.plot3 = ImageData.yProjection()
@@ -89,28 +87,6 @@ class ImageReader(QMainWindow):
         self.layoutV3.addWidget(ImageReader.Slider2,alignment=Qt.AlignHCenter)
         self.layoutH1.addWidget(self.promBox,5)
         self.layoutV1.addWidget(self.ResFields)
-#OLD
-        # self.central_widget.setLayout(self.layoutG1)
-        # self.layoutG1.setRowMinimumHeight(0,300)
-        # self.layoutG1.setRowMinimumHeight(1,300)
-        # self.layoutG1.setColumnMinimumWidth(0,450)
-        # self.layoutG1.setColumnMinimumWidth(1,200)
-        
-        # self.layoutG1.addWidget(ImageReader.plot4, 1, 0)
-        # self.layoutG1.addWidget(self.ResFields, 1, 1)
-        # self.layoutG1.addLayout(self.layoutGR00, 0, 0)
-        # self.layoutG1.addLayout(self.layoutGR01, 0, 1)
-        # self.layoutG1.addLayout(self.layoutGC10, 1, 0)
-        # self.layoutGR00.addLayout(self.layoutGC00)
-        # self.layoutGC00.addWidget(ImageReader.Slider1)
-        # self.layoutGC00.addWidget(ImageReader.plot1)
-        # self.layoutGR00.addWidget(ImageReader.Slider2)
-
-        # self.layoutGR01.addWidget(ImageReader.plot2)
-        # #self.layoutGR01.addWidget(ImageReader.slY)
-
-        # self.layoutGC10.addWidget(ImageReader.plot4)
-        #self.layoutGC10.addWidget(ImageReader.slX)
 
     def on_LoadIm_clicked():
         loadImageName = QFileDialog.getOpenFileName( caption="Open Image",directory=path, filter="Image Files (*.png *.jpg *.bmp *.csv *txt)")
@@ -386,6 +362,8 @@ class ImageReader(QMainWindow):
             ImageData.pixpermm = float(MaskFields.MaskWidget.Calibration.text())
             ImageData.d = (ImageData.hole_separation*ImageData.pixpermm)/2+ImageData.hole_diameter*ImageData.pixpermm
             ImageData.reduced = True
+
+
         except:
             msgBox = QMessageBox()
             msgBox.setWindowIcon(QIcon("mrsPepper.png"))
@@ -395,25 +373,37 @@ class ImageReader(QMainWindow):
             msgBox.exec_()
         try:
             ImageData.winfrac = float(ImageFields.ImFields.winfrac.text())
+            ImageData.xshift = int(ImageFields.ImFields.x_offsetIn.text())
+            ImageData.yshift = int(ImageFields.ImFields.y_offsetIn.text())
         except:
             print("Field Failure, Defaulting to 2")
             ImageData.winfrac = 2
+        try:
+            ImageData.yshift = int(ImageFields.ImFields.y_offsetIn.text())
+        except:
+            print("Y Shift Failure, Defaulting to 0")
+            ImageData.yshift = 2
+        try:
+            ImageData.xshift = int(ImageFields.ImFields.x_offsetIn.text())
+        except:
+            print("X Shift Failure, Defaulting to 0")
+            ImageData.xshift = 0
         y1s = []
         y2s = []
         x1s = []
         x2s = []
 
         for x1, y1 in zip(*np.where(ImageReader.edges)):
-            y1s.append(y1)
-            x1s.append(x1)
+            y1s.append(y1+ImageData.xshift)
+            x1s.append(x1+ImageData.yshift)
     
         y1s = np.array(y1s)
         x1s = np.array(x1s)
         print(f'edges x1: {x1s.shape[0]}')
-        x2s, y2s = ImageReader.cutdown(x1s,y1s,  math.ceil(ImageData.d/9999))
+        x2s, y2s = ImageReader.cutdown(x1s,y1s,  math.ceil(ImageData.d/ImageData.pixpermm))
         print(f'edges x2: {x2s.shape[0]}')
         print(f'peaks x1: {ImageReader.xpeaks.shape[0]}')
-        x1s,y1s = ImageReader.cutdown(ImageReader.xpeaks,ImageReader.ypeaks,  math.ceil(ImageData.d/9999))
+        x1s,y1s = ImageReader.cutdown(ImageReader.xpeaks+ImageData.yshift,ImageReader.ypeaks+ImageData.xshift,  math.ceil(ImageData.d/ImageData.pixpermm))
         print(f'peaks x2: {x1s.shape[0]}')
         ImageData.y3s = []
         ImageData.x3s = []

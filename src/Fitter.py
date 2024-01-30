@@ -388,9 +388,11 @@ class PeakByPeakFits():
             sigL = 0.05
         try:
             hole_err = float(MaskFields.MaskWidget.hole_err.text())#mm
+            PeakByPeakFits.hole_errmm = hole_err #mm
             hole_err = ImageData.hole_separation * ImageData.pixpermm * np.sqrt((puncert/ImageData.pixpermm)**2+(hole_err/ImageData.hole_separation)**2)#px
         except:
             hole_err = 0.00005#mm
+            PeakByPeakFits.hole_errmm = hole_err #mm
             hole_err = ImageData.hole_separation * ImageData.pixpermm * np.sqrt((puncert/ImageData.pixpermm)**2+(hole_err/ImageData.hole_separation)**2)#px
 
         min_x = int(ImageFields.ImFields.xminIn.text())
@@ -1008,7 +1010,7 @@ class PeakByPeakFits():
         meanXtot = meanXtot-offset
         hole_x = hole_x - offset+0.00000000001#odd masks have holes at the center, this is to prevent nans in sigxbar
         xs = xs - offset
-        sighij = hole_err#hole_x/pixpermm*np.sqrt((hole_err/hole_x)**2+(puncert/pixpermm)**2)#(1.2 Known sig_hij) px
+        sighij = hole_err#(1.2 Known sig_hij) px
         sigxbar = meanXtot * np.sqrt(1/np.sum(intX)+np.sum((hole_x)**2 * intX**2 * (1/intX + sighij**2/(hole_x)**2)) / np.sum((hole_x) * intX)**2)#pix good (3)
         
         sigNp2 = np.sum(intX) * pixpermm**2 * np.sqrt(1/np.sum(intX)+4*puncert**2/pixpermm**2) #(6)(pix/mm)^2
@@ -1017,39 +1019,53 @@ class PeakByPeakFits():
         
         #sig_<x'^2> # this looks ok?
         xij0 = xs-hole_x#(10) pix
-        sigij0 = np.sqrt(sighij**2+stdx**2 - 2*scipy.stats.pearsonr(xs,hole_x)[0] * sighij * stdx)#(11) pix
-        sigsig22 = (mu4x - (intX-3)/(intX-1)*stdx**4)/intX#(13) pix^4 pre squared to avoid errors
+        sigij0 = np.sqrt(sighij**2+stdx**2 - 2*scipy.stats.pearsonr(xs,hole_x)[0] * sighij * stdx)#(11) pix, hole err mixed with spots stdv
+        # print(f'hole-spot correlation: {2*scipy.stats.pearsonr(xs,hole_x)[0]*stdx}')
+        hole_errs = np.arange(0,0.1,0.001)
+        # print(f'stdx: {stdx}')
+        for i in hole_errs:
+            # temphole_err = i
+            tempsighij = ImageData.hole_separation * ImageData.pixpermm * np.sqrt((puncert/ImageData.pixpermm)**2+(i/ImageData.hole_separation)**2)
+            plt.plot(i, np.mean(tempsighij), 'o',c = 'b', label = 'no mixing')
+            plt.plot(i,np.mean(np.sqrt(tempsighij**2+(2*stdx)**2 - 2*scipy.stats.pearsonr(xs,hole_x)[0] * tempsighij * (2*stdx))), 'o', c='r', label = 'mixing')
+            # plt.plot(i, stdx)
+        plt.xlabel("Hole Uncertainty (mm)")
+        plt.ylabel("Mean Standard Deviation (pix)")
+        # plt.legend()
+        plt.show()
+        sigsig22 = (mu4x - (intX-3)/(intX-1)*stdx**4)/intX#(13) pix^4, pre squared to avoid errors
         sigL2p2 = 2 * L**2 * pixpermm**2 * np.sqrt((puncert/pixpermm)**2+(sigL/L)**2)#(14) pix^2
-        sig1stxp2 = 1000**2 * (stdx**2+xij0**2)/(L**2*pixpermm**2)*np.sqrt((sigsig22+(2*xij0*sigij0)**2)/(stdx**2+xij0**2)**2+sigL2p2**2/(L**4*pixpermm**4))#(15) looks good unitless
-
-        sigxpbari = xps * np.sqrt((sigij0/xij0)**2 + sigL**2/L**2+puncert**2/pixpermm**2)#(17) mrad
-        # sigxpbari = xperr
+        sig1stxp2 = 1000**2 * (stdx**2+xij0**2)/(L**2*pixpermm**2)*np.sqrt((sigsig22+(2*xij0*sigij0)**2)/(stdx**2+xij0**2)**2+sigL2p2**2/(L**4*pixpermm**4))#(15) looks good mrad
+        # print(f'sig1stxp2: {sig1stxp2}')
+        sigxpbari = xps * np.sqrt((sigij0/xij0)**2 + sigL**2/L**2+puncert**2/pixpermm**2)#(17) mrad 
+        # sigxpbari = xperr # Mixing term if commented, no mixing term if commented
         # print(f'differences = {sigxpbari - xperr}')#sigxpbari takes into account correlation between hole and spot position
-        sigxpbar = meanXp * np.sqrt(1/np.sum(intX) + np.sum(intX**2*xps**2*(1/intX + sigxpbari**2/xps**2))/(np.sum(intX*xps)**2))#(19)
-        sig22 = 2 * abs(xps-meanXp)*np.sqrt(sigxpbar**2+sigxpbari**2)#(20)
-        sig2ndxp2 = intX * (xps-meanXp)**2 *np.sqrt(1/intX + (sig22/((xps-meanXp)**2))**2)#(21)
+        sigxpbar = meanXp * np.sqrt(1/np.sum(intX) + np.sum(intX**2*xps**2*(1/intX + sigxpbari**2/xps**2))/(np.sum(intX*xps)**2))#(19)mrad
+        sig22 = 2 * abs(xps-meanXp)*np.sqrt(sigxpbar**2+sigxpbari**2)#(20)mrad
+        sig2ndxp2 = intX * (xps-meanXp)**2 *np.sqrt(1/intX + (sig22/((xps-meanXp)**2))**2)#(21)mrad
         # print(f'sig2ndxp2 = {sig2ndxp2}')
-        sigexp_xp2 = exp_xp2 * np.sqrt(1/np.sum(intX)+ (np.sum(sig1stxp2**2+sig2ndxp2**2)/(np.sum(1000**2*(stdx**2+xij0**2)/(L**2*pixpermm**2)+intX*(xps-meanXp)**2))**2))#(22)
+        sigexp_xp2 = exp_xp2 * np.sqrt(1/np.sum(intX)+ (np.sum(sig1stxp2**2+sig2ndxp2**2)/(np.sum(1000**2*(stdx**2+xij0**2)/(L**2*pixpermm**2)+intX*(xps-meanXp)**2))**2))#(22)mrad^2
 
         #sig_<xx'>^2
         sigxxp = meanXtot * meanXp / pixpermm * np.sqrt(sigxbar**2/meanXtot**2 + sigxpbar**2/ meanXp**2+(puncert/pixpermm)**2)#(23) added conversion to mm mrad
         signxhxp = intX * hole_x * xps * np.sqrt(1/intX + (sighij/hole_x)**2+(sigxpbari/xps)**2)#(25)
-        sig2ndxxp = np.sum(intX * hole_x*xps)/ (pixpermm * np.sum(intX)) *np.sqrt(1/np.sum(intX) + (puncert/pixpermm)**2+np.sum(signxhxp**2)/np.sum(intX*hole_x*xps)**2) #(26)
+        sig2ndxxp = np.sum(intX * hole_x*xps)/ (pixpermm * np.sum(intX)) *np.sqrt(1/np.sum(intX) + (puncert/pixpermm)**2+np.sum(signxhxp**2)/(np.sum(intX*hole_x*xps))**2) #(26)
         print(f'meanXtot: {meanXtot} +/- {sigxbar}')
         print(f'meanXp: {meanXp} +/- {sigxpbar}')
         # sigxhxp = hole_x *xps * np.sqrt(xperr**2/xps**2 + hole_err**2/hole_x**2 + 2 * scipy.stats.pearsonr(xps,hole_x)[0] * hole_err * xperr / (hole_x * xps))
         # sigSig3 = intX *hole_x * xps / pixpermm * np.sqrt(1 / intX + sigxhxp**2  / (hole_x * xps)**2)
         # sigSig3N = np.sum(intX * hole_x * xps/pixpermm)/np.sum(intX) * np.sqrt(1/np.sum(intX) + np.sum(sigSig3)/np.sum(intX * hole_x * xps/pixpermm)**2)
         # sigexp_xxp = np.sqrt(sigxxp**2 + sigSig3N**2)
-        sigexp_xxp = np.sqrt(sigxxp**2 + sig2ndxxp**2)
-        sigexp_xxp2 = np.abs(2 * exp_xxp * sigexp_xxp)
+        sigexp_xxp = np.sqrt(sigxxp**2 + sig2ndxxp**2)#(26)
+        sigexp_xxp2 = np.abs(2 * exp_xxp * sigexp_xxp)#(27)
         sig_xxp2s = exp_x2 * exp_xp2 * np.sqrt(sigexp_x2**2/exp_x2**2 + sigexp_xp2**2/exp_xp2**2)
-        sig_eps2 = np.sqrt(sig_xxp2s**2+sigexp_xxp2**2)
-        sig_eps = np.abs(1/(2 *eps_x)*sig_eps2)
+        sig_eps2 = np.sqrt(sig_xxp2s**2+sigexp_xxp2**2)#(29)
+        sig_eps = np.abs(1/(2 *eps_x)*sig_eps2)#(30)
         #sig_emm
         print(f'exp_x2:{exp_x2} +/- {sigexp_x2}')
         print(f'exp_xp2: {exp_xp2} +/- {sigexp_xp2}')
         print(f'exp_xxp: {exp_xxp} +/- {sigexp_xxp}')
+        print(f'eps: {eps_x} +/- {sig_eps}')
         # print(sigexp_x2)
 #         sig_eps = 1/(2*eps_x) *np.sqrt(sig_xxp2s**2 + sigexp_xxp2**2)
         return sig_eps
