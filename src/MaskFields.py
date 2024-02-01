@@ -392,14 +392,76 @@ class mask_width_read(QLineEdit):
         # print("m2s edited...")
         # print(s)
         return
-class MaskWidth(QWidget):
+class noise_read(QLineEdit):
+
     def __init__(self):
-        super(MaskWidth, self).__init__()
+        QLineEdit.__init__(self)
+        self.setMaxLength(8)
+        self.setPlaceholderText("0")
+        self.returnPressed.connect(self.return_pressed)
+        self.selectionChanged.connect(self.selection_changed)
+        self.textChanged.connect(self.text_changed)
+        self.textEdited.connect(self.text_edited)
+
+    def return_pressed(self):
+        print("Return pressed!")
+           
+    def selection_changed(self):
+        return
+    
+    def text_changed(self, s):
+        # print("m2s changed...")
+        # print(s)
+        return
+    
+    def text_edited(self, s):
+        # print("m2s edited...")
+        # print(s)
+        return
+class noise_uncert_read(QLineEdit):
+
+    def __init__(self):
+        QLineEdit.__init__(self)
+        self.setMaxLength(8)
+        self.setPlaceholderText("0")
+        self.returnPressed.connect(self.return_pressed)
+        self.selectionChanged.connect(self.selection_changed)
+        self.textChanged.connect(self.text_changed)
+        self.textEdited.connect(self.text_edited)
+
+    def return_pressed(self):
+        print("Return pressed!")
+           
+    def selection_changed(self):
+        return
+    
+    def text_changed(self, s):
+        # print("m2s changed...")
+        # print(s)
+        return
+    
+    def text_edited(self, s):
+        # print("m2s edited...")
+        # print(s)
+        return
+class MaskSimDat(QWidget):
+    def __init__(self):
+        super(MaskSimDat, self).__init__()
         # self.central_widget = QWidget()
+        self.layoutV1 = QVBoxLayout() #main layout
         self.layoutH1 = QHBoxLayout() # Mask Width
+        self.layoutH2 = QHBoxLayout() # Noise Level
         # self.setCentralWidget(self.central_widget)
 
-        MaskWidth.maskwidth = mask_width_read()
-        self.setLayout(self.layoutH1)
+        MaskSimDat.maskwidth = mask_width_read()
+        MaskSimDat.noiseLevel = noise_read()
+        MaskSimDat.noiseUncert = noise_uncert_read()
+        self.setLayout(self.layoutV1)
+        self.layoutV1.addLayout(self.layoutH1)
         self.layoutH1.addWidget(QLabel('Mask Width (mm)'))
-        self.layoutH1.addWidget(MaskWidth.maskwidth)
+        self.layoutH1.addWidget(MaskSimDat.maskwidth)
+        self.layoutV1.addLayout(self.layoutH2)
+        self.layoutH2.addWidget(QLabel('Added Noise Level'))
+        self.layoutH2.addWidget(MaskSimDat.noiseLevel)
+        self.layoutH2.addWidget(QLabel('+/-'))
+        self.layoutH2.addWidget(MaskSimDat.noiseUncert)

@@ -360,7 +360,7 @@ class ImageReader(QMainWindow):
             ImageData.hole_separation = float(MaskFields.MaskWidget.sepIn.text())
             ImageData.mask_to_screen = float(MaskFields.MaskWidget.Mask2ScrnIn.text())
             ImageData.pixpermm = float(MaskFields.MaskWidget.Calibration.text())
-            ImageData.d = (ImageData.hole_separation*ImageData.pixpermm)/2+ImageData.hole_diameter*ImageData.pixpermm
+            ImageData.d = (ImageData.hole_separation*ImageData.pixpermm)+ImageData.hole_diameter*ImageData.pixpermm #old version had hole separation /2 consistent with simulation, inconsistent with reality
             ImageData.reduced = True
 
 

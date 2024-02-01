@@ -26,8 +26,10 @@ import ImageData
 import Mainapp
 import MaskFields
 import ImageFields
+from numba import jit
 #TODO TEMPORARY
 from datetime import datetime
+
 path = os.getcwd()
 # path = 'D:/Workspace/Images/'
 # Define constants
@@ -233,46 +235,54 @@ class SimDatWidget(QMainWindow):
         gc.collect()
         now = datetime.now()
         print("100% ", now.strftime("%H:%M:%S"))
-    
-    def getDelta(hist):
-        ax1 = []
-        ax2 = []
-        for i in range(hist[0].shape[0]):
-            ax1.append([hist[1][i]- hist[1][i+1]])
-            ax2.append([hist[2][i]- hist[2][i+1]])
-        ax1 = np.array(ax1)    
-        ax2 = np.array(ax2)
-        del1 = np.mean(np.abs(ax1))
-        del2 = np.mean(np.abs(ax2))
-        return del1, del2
 
     def on_LoadDat_clicked(self):
-        loadMaskName = QFileDialog.getOpenFileName(caption="Load Mask", directory=path, filter="*.csv")
-        print(loadMaskName[0])
-        file = open(loadMaskName[0], 'r')
-        data = list(csv.reader(file, delimiter=","))
-        # print(data[0][0])
-        # print(data[0][1])
-        # print(data[0][2])
-        # print(data[0][3])
-        # print(data[0][4])
-        #print(data)
-        self.numHoles.setText(data[0][0])
-        self.diamIn.setText(data[0][1])
-        self.sepIn.setText(data[0][2])
-        self.Mask2ScrnIn.setText(data[0][3])
-        self.Calibration.setText(data[0][4])
-        try:
-            self.hole_err.setText(data[2][0])
-            self.sigL.setText(data[2][1])
-            self.puncert.setText(data[2][2])
-        except:
-            print('no errors in file')
-            self.hole_err.setText('')
-            self.sigL.setText('')
-            self.puncert.setText('')
-        file.close()
+        loadDatName = QFileDialog.getOpenFileName(caption="Load Particle Data", directory=path, filter="*.pkl")
+        SimDatWidget.tempdf = pd.read_pickle(loadDatName[0])
+        now = datetime.now()
+        print("5% ", now.strftime("%H:%M:%S"))
+        SimDatWidget.xxp = np.histogram2d(SimDatWidget.tempdf.X, SimDatWidget.tempdf.Xp,bins = int(np.min([SimDatWidget.tempdf.shape[0]/100,500])))
+        now = datetime.now()
+        print("30% ", now.strftime("%H:%M:%S"))
+        SimDatWidget.yyp = np.histogram2d(SimDatWidget.tempdf.Y, SimDatWidget.tempdf.Yp,bins =  int(np.min([SimDatWidget.tempdf.shape[0]/100,500])))
+        now = datetime.now()
+        print("65% ", now.strftime("%H:%M:%S"))
+        SimDatWidget.xy = np.histogram2d(SimDatWidget.tempdf.X, SimDatWidget.tempdf.Y,bins =  int(np.min([SimDatWidget.tempdf.shape[0]/100,500])))
+        now = datetime.now()
+        print("95% ", now.strftime("%H:%M:%S"))
+        SimDatWidget.xpyp = np.histogram2d(SimDatWidget.tempdf.Xp, SimDatWidget.tempdf.Yp,bins =  int(np.min([SimDatWidget.tempdf.shape[0]/100,500])))
 
+        xxp_img = pg.ImageItem(SimDatWidget.xxp[0], invertY=False)#
+        xxp_img.setRect([min(SimDatWidget.xxp[1]),min(SimDatWidget.xxp[2]),(max(SimDatWidget.xxp[1])-min(SimDatWidget.xxp[1])),(max(SimDatWidget.xxp[2])-min(SimDatWidget.xxp[2]))])
+        xxp_img.setColorMap('viridis')#
+
+        yyp_img = pg.ImageItem(SimDatWidget.yyp[0], invertY=False)
+        yyp_img.setRect([min(SimDatWidget.yyp[1]),min(SimDatWidget.yyp[2]),(max(SimDatWidget.yyp[1])-min(SimDatWidget.yyp[1])),(max(SimDatWidget.yyp[2])-min(SimDatWidget.yyp[2]))])
+        yyp_img.setColorMap('viridis')
+
+        xy_img = pg.ImageItem(SimDatWidget.xy[0], invertY=False)
+        xy_img.setRect([min(SimDatWidget.xy[1]),min(SimDatWidget.xy[2]),(max(SimDatWidget.xy[1])-min(SimDatWidget.xy[1])),(max(SimDatWidget.xy[2])-min(SimDatWidget.xy[2]))])
+        xy_img.setColorMap('viridis')
+
+        xpyp_img = pg.ImageItem(SimDatWidget.xpyp[0], invertY=False)
+        xpyp_img.setRect([min(SimDatWidget.xpyp[1]),min(SimDatWidget.xpyp[2]),(max(SimDatWidget.xpyp[1])-min(SimDatWidget.xpyp[1])),(max(SimDatWidget.xpyp[2])-min(SimDatWidget.xpyp[2]))])
+        xpyp_img.setColorMap('viridis')
+
+        SimagesWidget.ax_xxp.clear()
+        SimagesWidget.ax_xxp.addItem(xxp_img)
+
+        SimagesWidget.ax_xy.clear()
+        SimagesWidget.ax_xy.addItem(xy_img)
+
+        SimagesWidget.ax_yyp.clear()
+        SimagesWidget.ax_yyp.addItem(yyp_img)
+
+        SimagesWidget.ax_xpyp.clear()
+        SimagesWidget.ax_xpyp.addItem(xpyp_img)
+        now = datetime.now()
+        print("95% ", now.strftime("%H:%M:%S"))
+        SimDatWidget.xemit.setText(f'{np.sqrt(np.mean(SimDatWidget.tempdf.X**2)*np.mean(SimDatWidget.tempdf.Xp**2)-np.mean(SimDatWidget.tempdf.X*SimDatWidget.tempdf.Xp)**2)/np.pi:.3f}')
+        SimDatWidget.yemit.setText(f'{np.sqrt(np.mean(SimDatWidget.tempdf.Y**2)*np.mean(SimDatWidget.tempdf.Yp**2)-np.mean(SimDatWidget.tempdf.Y*SimDatWidget.tempdf.Yp)**2)/np.pi:.3f}')
     def on_SaveDat_clicked(self):
         saveDatName = QFileDialog.getSaveFileName(caption="Save Mask", filter="*.pkl")
         # print(saveDatName)
@@ -283,7 +293,7 @@ class SimDatWidget(QMainWindow):
         hole_separation = float(Mainapp.MainWindow.MskFields2.sepIn.text())#0.50 #mm
         mask_to_screen = float(Mainapp.MainWindow.MskFields2.Mask2ScrnIn.text())#6.35#12.7 #mm
         pixpermm = float(Mainapp.MainWindow.MskFields2.Calibration.text())#15#12.5 um pores on MCP
-        n_holes = float(Mainapp.MainWindow.MskFields2.numHoles.text()) #squared
+        n_holes = int(Mainapp.MainWindow.MskFields2.numHoles.text()) #squared
         box_start = 0 #mm
         try:
             box_end = float(Mainapp.MainWindow.maskWidth.maskwidth.text()) #mm
@@ -298,7 +308,7 @@ class SimDatWidget(QMainWindow):
             for j in range(n_holes):
                 locs2.append([i*d-d*(n_holes-1)/2,j*d-(d*(n_holes-1))/2])#pix
         locs2 = np.array(locs2).T
-        #@jit(nopython=True)
+        @jit(nopython=True)
         def motion(xi,yi,zi,vxi,vyi,vzi,t):
                 zf = []
                 xf = []
@@ -356,8 +366,53 @@ class SimDatWidget(QMainWindow):
                 xf = np.array(xf)
                 yf = np.array(yf)
                 return xf,yf,zf
-        
-
+        time = 1e-6
+        dt = 1e-10
+        times = np.arange(0,time,dt)
+        num_pix = pixpermm*25.4*1.5
+        now = datetime.now()
+        print("PreMotion % ", now.strftime("%H:%M:%S"))
+        fin_x,fin_y, fin_z = motion(SimDatWidget.tempdf.X.to_numpy(),SimDatWidget.tempdf.Y.to_numpy(),SimDatWidget.tempdf.Z.to_numpy(),SimDatWidget.tempdf.Vx.to_numpy(),SimDatWidget.tempdf.Vy.to_numpy(),SimDatWidget.tempdf.Vz.to_numpy(),times[:-1])
+        now = datetime.now()
+        print("PostMotion % ", now.strftime("%H:%M:%S"))
+        offset = num_pix/2
+        fin_x = fin_x[fin_y != 9999] * pixpermm +offset#px
+        fin_y = fin_y[fin_y != 9999] * pixpermm +offset#px
+        pixels = np.arange(0,num_pix+1, 1)
+        SimDatWidget.hist, xedges, yedges = np.histogram2d(fin_x, fin_y, bins=[pixels,pixels])
+ #add noise and generate image
+        try:
+            noise1 = int(MaskFields.MaskSimDat.noiseLevel.text()) #squared
+        except:
+            print("Issue reading in Noise Level, defaulting to 0")
+            noise1 = 0
+        try:
+            noise2 = int(MaskFields.MaskSimDat.noiseUncert.text()) #squared
+        except:
+            print("Issue reading in Noise Uncertainty, defaulting to 0")
+            noise2 = 0
+        print(np.max(SimDatWidget.hist))
+        print(SimDatWidget.hist)
+        m = (255-noise1)/np.max(SimDatWidget.hist)
+        noise = np.random.normal(noise1, noise2, (SimDatWidget.hist.shape[0],SimDatWidget.hist.shape[0]))
+        print(noise)
+        #print(noise.shape[0])
+        print(np.max(SimDatWidget.hist))
+        SimDatWidget.newhist = SimDatWidget.hist*m + noise
+        plt.figure(figsize = (0.98,0.98), dpi =  25.4 * pixpermm)#(2.0455,2.0455)
+        print( SimDatWidget.newhist.shape[0])
+        print(SimDatWidget.newhist)
+        print(np.max(SimDatWidget.newhist[0]))
+        plt.imshow( SimDatWidget.newhist, cmap = plt.cm.gray)
+        #plt.colorbar()
+        plt.axis('off')
+        #filenum2 = filenum # toggle for new emit data
+    #     plt.savefig(imgAlbum+folder+f'simupepper-{filenum2}-h.png', bbox_inches='tight', pad_inches = 0)
+        plt.show()
+    def on_SaveTraj_clicked():
+            saveTrajName = QFileDialog.getSaveFileName(caption="Save Trajectories", filter="*.csv")
+            #TODO add ability to save to PNG
+            np.savetxt(saveTrajName[0], SimDatWidget.newhist.T, delimiter=",")
 class num_part_read(QLineEdit):
     def __init__(self):
         QLineEdit.__init__(self)

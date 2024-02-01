@@ -51,7 +51,7 @@ class MainWindow(QMainWindow):
         self.ImgFields = ImageFields.ImFields()
         self.MskFields = MaskFields.MaskWidget()
         MainWindow.MskFields2 = MaskFields.MaskWidget()
-        MainWindow.maskWidth = MaskFields.MaskWidth()
+        MainWindow.maskWidth = MaskFields.MaskSimDat()
         self.SimFields = Simulation.SimDatWidget()
         self.SimImages = Simulation.SimagesWidget()
 
@@ -64,6 +64,7 @@ class MainWindow(QMainWindow):
         self.handfit = QPushButton('Hand Fit')
         loadImagePrompt = QPushButton('Load Image')
         CalcTrajPrompt = QPushButton('Calculate Trajectories')
+        SaveTrajPrompt = QPushButton('Save Trajectories')
         
         
 #tabs
@@ -75,6 +76,7 @@ class MainWindow(QMainWindow):
         self.tab1.setLayout(self.layoutH0)
         self.tab2.setLayout(self.layoutH1)
 #Connect your fields to functions
+        SaveTrajPrompt.clicked.connect(Simulation.SimDatWidget.on_SaveTraj_clicked)
         CalcTrajPrompt.clicked.connect(Simulation.SimDatWidget.on_CalcTraj_clicked)
         loadImagePrompt.clicked.connect(ImageData.ImageReader.on_LoadIm_clicked)
         multiFit.clicked.connect(Fitter.MultiFits.on_MultiFit_clicked)
@@ -110,6 +112,7 @@ class MainWindow(QMainWindow):
         self.layoutV2.addWidget(MainWindow.MskFields2)
         self.layoutV2.addWidget(MainWindow.maskWidth)
         self.layoutV2.addWidget(CalcTrajPrompt)
+        self.layoutV2.addWidget(SaveTrajPrompt)
         self.layoutH1.addWidget(self.SimImages,9)
     def changeFitplots(self,value):
         # ImageData.ImageReader.plot1.clear()
