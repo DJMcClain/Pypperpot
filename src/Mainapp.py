@@ -18,12 +18,18 @@ from IPython import display
 import csv
 import os
 import scipy
-import ImageData
-import ImageFields
-import MaskFields
+import ImageData, ImageFields, MaskFields, Sliders, Fitter, ResultFields, ParticleData
+# import ImageFields
+# import MaskFields
 import HandFitWindow
+<<<<<<< Updated upstream
 import Sliders
 import Fitter
+=======
+# import Sliders
+# import Fitter
+# import ResultFields
+>>>>>>> Stashed changes
 
 # path = os.getcwd()
 path = 'D:/Workspace/Images/'
@@ -37,13 +43,22 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("PYpperpot 2.1")
         
         self.central_widget = QWidget() # A QWidget to work as Central Widget
-        self.layoutH0 = QHBoxLayout() # Main window
+        self.layout1 = QHBoxLayout() # Main window
+
+        self.layoutH0 = QHBoxLayout() # Analysis window
         self.layoutV0 = QVBoxLayout() # Plot Column
         self.layoutG1 = ImageData.ImageReader()
         self.layoutV1 = QVBoxLayout() # File Params column
         self.ImgFields = ImageFields.ImFields()
         self.MskFields = MaskFields.MaskWidget()
         self.layoutH10 = QHBoxLayout() # Fit/Hand Fit
+
+        self.layoutH1 = QHBoxLayout() # Simulation window
+        self.layoutV2 = QVBoxLayout() # Particle info + Mask info Column
+        self.partinfo = ParticleData.PDataWidget()
+        self.layoutH2 = QHBoxLayout() #Results
+        self.MskFields2 = MaskFields.MaskWidget()
+
         self.setCentralWidget(self.central_widget)
 
 #button classes to be started
@@ -52,17 +67,30 @@ class MainWindow(QMainWindow):
         pbpFit = QPushButton('Peak-By-Peak Fit')
         self.handfit = QPushButton('Hand Fit')
         
-#field class to be defined
-
+#tabs
+        self.tabs = QTabWidget()
+        self.tab1 = QWidget()
+        self.tab2 = QWidget()
+        self.tabs.addTab(self.tab1, "Analysis")
+        self.tabs.addTab(self.tab2,"Simulation")
+        self.tab1.setLayout(self.layoutH0)
+        self.tab2.setLayout(self.layoutH1)
 #Connect your fields to functions
         multiFit.clicked.connect(Fitter.MultiFits.on_MultiFit_clicked)
         pbpFit.clicked.connect(Fitter.PeakByPeakFits.on_pbpFit_clicked)
         self.handfit.clicked.connect(self.on_Hand_clicked)
 
 #Set Highest layer layout and work down
+<<<<<<< Updated upstream
         self.central_widget.setLayout(self.layoutH0)
         self.layoutH0.addLayout(self.layoutV1)#column 1
         self.layoutH0.addLayout(self.layoutV0)#column 2
+=======
+        self.central_widget.setLayout(self.layout1)
+        self.layout1.addWidget(self.tabs)
+        self.layoutH0.addLayout(self.layoutV1,1)#column 1
+        self.layoutH0.addLayout(self.layoutV0,9)#column 2
+>>>>>>> Stashed changes
 
         self.layoutV0.addWidget(self.layoutG1)
 
@@ -72,8 +100,15 @@ class MainWindow(QMainWindow):
         self.layoutV1.addLayout(self.layoutH10)
         self.layoutH10.addWidget(multiFit)
         self.layoutH10.addWidget(pbpFit)
+<<<<<<< Updated upstream
         self.layoutH10.addWidget(self.handfit)   
 
+=======
+        #self.layoutH10.addWidget(self.handfit)   
+        self.layoutH1.addLayout(self.layoutV2)#column 1
+        self.layoutV2.addWidget(self.partinfo)
+        self.layoutV2.addWidget(self.MskFields2)
+>>>>>>> Stashed changes
     def changeFitplots(self,value):
         # ImageData.ImageReader.plot1.clear()
         ImageData.ImageReader.plot2.clear()
