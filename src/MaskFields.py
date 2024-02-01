@@ -54,14 +54,14 @@ class MaskWidget(QMainWindow):
         loadMaskPrompt.clicked.connect(self.on_LoadMa_clicked)
         saveMaskPrompt.clicked.connect(self.on_SaveMa_clicked)
 
-        loadImagePrompt = QPushButton('Load Image')
-        saveImagePrompt = QPushButton('*Save Image*')
-        loadImagePrompt.clicked.connect(ImageData.ImageReader.on_LoadIm_clicked)
-        saveImagePrompt.clicked.connect(ImageData.ImageReader.on_SaveIm_clicked)
+        # loadImagePrompt = QPushButton('Load Image')
+        # saveImagePrompt = QPushButton('*Save Image*')
+        # loadImagePrompt.clicked.connect(ImageData.ImageReader.on_LoadIm_clicked)
+        # saveImagePrompt.clicked.connect(ImageData.ImageReader.on_SaveIm_clicked)
 
         self.central_widget.setLayout(self.layoutV1)
-        self.layoutV1.addLayout(self.layoutH1)
-        self.layoutH1.addWidget(loadImagePrompt)
+        # self.layoutV1.addLayout(self.layoutH1)
+        # self.layoutH1.addWidget(loadImagePrompt)
         self.layoutV1.addLayout(self.layoutH4)
         self.layoutH4.addWidget(QLabel('Mask'))
         self.layoutH4.addWidget(loadMaskPrompt)
@@ -336,6 +336,7 @@ class hole_err_read(QLineEdit):
         return
     
 class mask2Scrn_err_read(QLineEdit):
+
     def __init__(self):
         QLineEdit.__init__(self)
         self.setMaxLength(8)
@@ -365,3 +366,40 @@ class mask2Scrn_err_read(QLineEdit):
         # print("m2s edited...")
         # print(s)
         return
+class mask_width_read(QLineEdit):
+
+    def __init__(self):
+        QLineEdit.__init__(self)
+        self.setMaxLength(8)
+        self.setPlaceholderText("0.1")
+        self.returnPressed.connect(self.return_pressed)
+        self.selectionChanged.connect(self.selection_changed)
+        self.textChanged.connect(self.text_changed)
+        self.textEdited.connect(self.text_edited)
+
+    def return_pressed(self):
+        print("Return pressed!")
+           
+    def selection_changed(self):
+        return
+    
+    def text_changed(self, s):
+        # print("m2s changed...")
+        # print(s)
+        return
+    
+    def text_edited(self, s):
+        # print("m2s edited...")
+        # print(s)
+        return
+class MaskWidth(QWidget):
+    def __init__(self):
+        super(MaskWidth, self).__init__()
+        # self.central_widget = QWidget()
+        self.layoutH1 = QHBoxLayout() # Mask Width
+        # self.setCentralWidget(self.central_widget)
+
+        MaskWidth.maskwidth = mask_width_read()
+        self.setLayout(self.layoutH1)
+        self.layoutH1.addWidget(QLabel('Mask Width (mm)'))
+        self.layoutH1.addWidget(MaskWidth.maskwidth)

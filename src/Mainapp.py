@@ -18,13 +18,13 @@ from IPython import display
 import csv
 import os
 import scipy
-import ImageData
-import ImageFields
-import MaskFields
-import HandFitWindow
-import Sliders
-import Fitter
-import ResultFields
+import ImageData, ImageFields, MaskFields, HandFitWindow, Fitter, Sliders, ResultFields, Simulation
+# import ImageFields
+# import MaskFields
+# import HandFitWindow
+# import Sliders
+# import Fitter
+# import ResultFields
 
 # path = os.getcwd()
 path = 'D:/Workspace/Images/'
@@ -38,13 +38,23 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("PYpperpot 2.2")
         
         self.central_widget = QWidget() # A QWidget to work as Central Widget
-        self.layoutH0 = QHBoxLayout() # Main window
+        self.layout1 = QHBoxLayout() # Main window
+        self.layoutH0 = QHBoxLayout() # Analysis window
         self.layoutV0 = QVBoxLayout() # Plot Column
         self.layoutG1 = ImageData.ImageReader()
         self.layoutV1 = QVBoxLayout() # File Params column
+        self.layoutH10 = QHBoxLayout() # Fit/Hand Fit
+
+        self.layoutH1 = QHBoxLayout() # Simulation window
+        self.layoutV2 = QVBoxLayout() # Particle and Mask info
+
         self.ImgFields = ImageFields.ImFields()
         self.MskFields = MaskFields.MaskWidget()
-        self.layoutH10 = QHBoxLayout() # Fit/Hand Fit
+        MainWindow.MskFields2 = MaskFields.MaskWidget()
+        MainWindow.maskWidth = MaskFields.MaskWidth()
+        self.SimFields = Simulation.SimDatWidget()
+        self.SimImages = Simulation.SimagesWidget()
+
         self.setCentralWidget(self.central_widget)
         # self.central_widget.setStyleSheet("background-color : lightgrey")
 #button classes to be started
@@ -52,10 +62,21 @@ class MainWindow(QMainWindow):
         multiFit = QPushButton('Multi Fit (Max 8 peaks)')
         pbpFit = QPushButton('Peak-By-Peak Fit')
         self.handfit = QPushButton('Hand Fit')
+        loadImagePrompt = QPushButton('Load Image')
+        CalcTrajPrompt = QPushButton('Calculate Trajectories')
         
-#field class to be defined
-
+        
+#tabs
+        self.tabs = QTabWidget()
+        self.tab1 = QWidget()
+        self.tab2 = QWidget()
+        self.tabs.addTab(self.tab1, "Analysis")
+        self.tabs.addTab(self.tab2,"Simulation")
+        self.tab1.setLayout(self.layoutH0)
+        self.tab2.setLayout(self.layoutH1)
 #Connect your fields to functions
+        CalcTrajPrompt.clicked.connect(Simulation.SimDatWidget.on_CalcTraj_clicked)
+        loadImagePrompt.clicked.connect(ImageData.ImageReader.on_LoadIm_clicked)
         multiFit.clicked.connect(Fitter.MultiFits.on_MultiFit_clicked)
         pbpFit.clicked.connect(Fitter.PeakByPeakFits.on_pbpFit_clicked)
         self.handfit.clicked.connect(self.on_Hand_clicked)
@@ -64,13 +85,16 @@ class MainWindow(QMainWindow):
         MainWindow.edgeboolbutt.setStyleSheet("background-color : lightgrey")
 
 #Set Highest layer layout and work down
-        self.central_widget.setLayout(self.layoutH0)
+        self.central_widget.setLayout(self.layout1)
+        self.layout1.addWidget(self.tabs)
         self.layoutH0.addLayout(self.layoutV1,1)#column 1
         self.layoutH0.addLayout(self.layoutV0,9)#column 2
 
         self.layoutV0.addWidget(self.layoutG1)
         
-        self.layoutV1.addWidget(self.ImgFields)#invisible?
+        # self.layoutV1.addWidget(self.ImgFields)#invisible?
+
+        self.layoutV1.addWidget(loadImagePrompt)
         self.layoutV1.addWidget(self.MskFields)
         self.layoutV1.addWidget(MainWindow.edgeboolbutt)
         self.layoutV1.addWidget(self.ImgFields)
@@ -80,7 +104,13 @@ class MainWindow(QMainWindow):
         #self.layoutH10.addWidget(multiFit)
         self.layoutH10.addWidget(pbpFit)
         #self.layoutH10.addWidget(self.handfit)   
-
+    #Simulation
+        self.layoutH1.addLayout(self.layoutV2,1)
+        self.layoutV2.addWidget(self.SimFields)
+        self.layoutV2.addWidget(MainWindow.MskFields2)
+        self.layoutV2.addWidget(MainWindow.maskWidth)
+        self.layoutV2.addWidget(CalcTrajPrompt)
+        self.layoutH1.addWidget(self.SimImages,9)
     def changeFitplots(self,value):
         # ImageData.ImageReader.plot1.clear()
         ImageData.ImageReader.plot2.clear()
