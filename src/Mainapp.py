@@ -18,18 +18,13 @@ from IPython import display
 import csv
 import os
 import scipy
-import ImageData, ImageFields, MaskFields, Sliders, Fitter, ResultFields, ParticleData
+import ImageData, ImageFields, MaskFields, HandFitWindow, Fitter, Sliders, ResultFields, Simulation
 # import ImageFields
 # import MaskFields
-import HandFitWindow
-<<<<<<< Updated upstream
-import Sliders
-import Fitter
-=======
+# import HandFitWindow
 # import Sliders
 # import Fitter
 # import ResultFields
->>>>>>> Stashed changes
 
 # path = os.getcwd()
 path = 'D:/Workspace/Images/'
@@ -40,32 +35,37 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
         self.setWindowIcon(QIcon("mrsPepper.png"))
-        self.setWindowTitle("PYpperpot 2.1")
+        self.setWindowTitle("PYpperpot 2.3")
         
         self.central_widget = QWidget() # A QWidget to work as Central Widget
         self.layout1 = QHBoxLayout() # Main window
-
         self.layoutH0 = QHBoxLayout() # Analysis window
         self.layoutV0 = QVBoxLayout() # Plot Column
         self.layoutG1 = ImageData.ImageReader()
         self.layoutV1 = QVBoxLayout() # File Params column
-        self.ImgFields = ImageFields.ImFields()
-        self.MskFields = MaskFields.MaskWidget()
         self.layoutH10 = QHBoxLayout() # Fit/Hand Fit
 
         self.layoutH1 = QHBoxLayout() # Simulation window
-        self.layoutV2 = QVBoxLayout() # Particle info + Mask info Column
-        self.partinfo = ParticleData.PDataWidget()
-        self.layoutH2 = QHBoxLayout() #Results
-        self.MskFields2 = MaskFields.MaskWidget()
+        self.layoutV2 = QVBoxLayout() # Particle and Mask info
+
+        self.ImgFields = ImageFields.ImFields()
+        self.MskFields = MaskFields.MaskWidget()
+        MainWindow.MskFields2 = MaskFields.MaskWidget()
+        MainWindow.maskWidth = MaskFields.MaskSimDat()
+        self.SimFields = Simulation.SimDatWidget()
+        self.SimImages = Simulation.SimagesWidget()
 
         self.setCentralWidget(self.central_widget)
-
+        # self.central_widget.setStyleSheet("background-color : lightgrey")
 #button classes to be started
-
+        MainWindow.edgeboolbutt = QPushButton("Edge-Sensing Algorithm",self)
         multiFit = QPushButton('Multi Fit (Max 8 peaks)')
         pbpFit = QPushButton('Peak-By-Peak Fit')
         self.handfit = QPushButton('Hand Fit')
+        loadImagePrompt = QPushButton('Load Image')
+        CalcTrajPrompt = QPushButton('Calculate Trajectories')
+        SaveTrajPrompt = QPushButton('Save Trajectories')
+        
         
 #tabs
         self.tabs = QTabWidget()
@@ -76,39 +76,44 @@ class MainWindow(QMainWindow):
         self.tab1.setLayout(self.layoutH0)
         self.tab2.setLayout(self.layoutH1)
 #Connect your fields to functions
+        SaveTrajPrompt.clicked.connect(Simulation.SimDatWidget.on_SaveTraj_clicked)
+        CalcTrajPrompt.clicked.connect(Simulation.SimDatWidget.on_CalcTraj_clicked)
+        loadImagePrompt.clicked.connect(ImageData.ImageReader.on_LoadIm_clicked)
         multiFit.clicked.connect(Fitter.MultiFits.on_MultiFit_clicked)
         pbpFit.clicked.connect(Fitter.PeakByPeakFits.on_pbpFit_clicked)
         self.handfit.clicked.connect(self.on_Hand_clicked)
+        MainWindow.edgeboolbutt.setCheckable(True)
+        MainWindow.edgeboolbutt.clicked.connect(self.edgeBoolClicked)
+        MainWindow.edgeboolbutt.setStyleSheet("background-color : lightgrey")
 
 #Set Highest layer layout and work down
-<<<<<<< Updated upstream
-        self.central_widget.setLayout(self.layoutH0)
-        self.layoutH0.addLayout(self.layoutV1)#column 1
-        self.layoutH0.addLayout(self.layoutV0)#column 2
-=======
         self.central_widget.setLayout(self.layout1)
         self.layout1.addWidget(self.tabs)
         self.layoutH0.addLayout(self.layoutV1,1)#column 1
         self.layoutH0.addLayout(self.layoutV0,9)#column 2
->>>>>>> Stashed changes
 
         self.layoutV0.addWidget(self.layoutG1)
+        
+        # self.layoutV1.addWidget(self.ImgFields)#invisible?
 
-        self.layoutV1.addWidget(self.ImgFields)
+        self.layoutV1.addWidget(loadImagePrompt)
         self.layoutV1.addWidget(self.MskFields)
+        self.layoutV1.addWidget(MainWindow.edgeboolbutt)
+        self.layoutV1.addWidget(self.ImgFields)
+        
 
         self.layoutV1.addLayout(self.layoutH10)
-        self.layoutH10.addWidget(multiFit)
+        #self.layoutH10.addWidget(multiFit)
         self.layoutH10.addWidget(pbpFit)
-<<<<<<< Updated upstream
-        self.layoutH10.addWidget(self.handfit)   
-
-=======
         #self.layoutH10.addWidget(self.handfit)   
-        self.layoutH1.addLayout(self.layoutV2)#column 1
-        self.layoutV2.addWidget(self.partinfo)
-        self.layoutV2.addWidget(self.MskFields2)
->>>>>>> Stashed changes
+    #Simulation
+        self.layoutH1.addLayout(self.layoutV2,1)
+        self.layoutV2.addWidget(self.SimFields)
+        self.layoutV2.addWidget(MainWindow.MskFields2)
+        self.layoutV2.addWidget(MainWindow.maskWidth)
+        self.layoutV2.addWidget(CalcTrajPrompt)
+        self.layoutV2.addWidget(SaveTrajPrompt)
+        self.layoutH1.addWidget(self.SimImages,9)
     def changeFitplots(self,value):
         # ImageData.ImageReader.plot1.clear()
         ImageData.ImageReader.plot2.clear()
@@ -260,4 +265,16 @@ class MainWindow(QMainWindow):
         self.w2 = HandFitWindow.Handfitting(self.Xprojdf, self.Yprojdf, ImageData.imgData, ImageData.ImageReader.threshold, self.d, self.x3s, self.y3s)
         self.w2.show()
 
+    def edgeBoolClicked(self):
+        # if button is checked
+        if MainWindow.edgeboolbutt.isChecked():
+            # setting background color to light-blue
+            MainWindow.edgeboolbutt.setStyleSheet("background-color : lightblue")
+            MainWindow.edgeboolbutt.setText("Peak-Sensing Algorithm")
 
+        # if it is unchecked
+        else:
+            # set background color back to light-grey
+            MainWindow.edgeboolbutt.setStyleSheet("background-color : lightgrey")
+            MainWindow.edgeboolbutt.setText("Edge-Sensing Algorithm")
+ 
