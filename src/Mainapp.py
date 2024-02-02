@@ -35,7 +35,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
         self.setWindowIcon(QIcon("mrsPepper.png"))
-        self.setWindowTitle("PYpperpot 2.2")
+        self.setWindowTitle("PYpperpot 2.3")
         
         self.central_widget = QWidget() # A QWidget to work as Central Widget
         self.layout1 = QHBoxLayout() # Main window
