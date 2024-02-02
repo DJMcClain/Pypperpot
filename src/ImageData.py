@@ -63,8 +63,8 @@ class ImageReader(QMainWindow):
 
         ImageReader.plot2 = ImageData.xProjection()
         ImageReader.plot3 = ImageData.yProjection()
-        ImageReader.plot1 = pg.ImageView(view=pg.PlotItem())#ImageData.ImagePlot1(view=pg.PlotItem())
-        ImageReader.plot4 = pg.ImageView(view=pg.PlotItem())#ImageData.ImagePlot2(view=pg.PlotItem())
+        ImageReader.plot1 = pg.PlotWidget(plotItem=pg.PlotItem())#ImageData.ImagePlot1(view=pg.PlotItem())
+        ImageReader.plot4 = pg.PlotWidget(plotItem=pg.PlotItem())#ImageData.ImagePlot2(view=pg.PlotItem())
         # ImageReader.plot4.set
         self.central_widget.setLayout(self.layoutH0)
         self.layoutH0.addLayout(self.layoutV0,9)#Plots
@@ -109,21 +109,21 @@ class ImageReader(QMainWindow):
             ImageData.imgData = ImageReader.csv_GSmatrix(loadImageName) 
 
         try:
-            ImageReader.p1view.clear()
+            ImageReader.plot4.clear()
         except:
             print('no previous view')
         ImageData.imgData = ImageData.imgData.T
         ImageData.x_offset = ImageData.imgData.shape[0]/2
         ImageData.y_offset = ImageData.imgData.shape[1]/2
-        ImageReader.img = pg.ImageItem(image = ImageData.imgData)
+        ImageReader.img = pg.ImageItem(image = ImageData.imgData, invertY = False)
         # ImageReader.img2 = pg.ImageItem(image = ImageData.imgData) 
 
         ImageReader.threshold = filters.threshold_otsu(ImageData.imgData)
         ImageReader.binary_image = ImageData.imgData > ImageReader.threshold/2
         # ImageReader.p1view = ImageReader.plot1.getView()
         # ImageReader.p1view.addItem(ImageReader.img)
-        ImageReader.p4view = ImageReader.plot4.getView()
-        ImageReader.p4view.addItem(ImageReader.img)
+        # ImageReader.p4view = ImageReader.plot4.getView()
+        ImageReader.plot4.addItem(ImageReader.img)
         try:
             ImageReader.edges = feature.canny(ImageReader.binary_image, sigma=5)
             ImageReader.outlines = np.zeros((*ImageReader.edges.shape,4))
@@ -170,10 +170,10 @@ class ImageReader(QMainWindow):
         ImageReader.p1linev2 = pg.PlotCurveItem(x=[ImageReader.max_x, ImageReader.max_x], y=[ImageReader.min_y,ImageReader.max_y], pen =ImageReader.gpen)
         ImageReader.p1lineh1 = pg.PlotCurveItem(x=[ImageReader.min_x, ImageReader.max_x], y=[ImageReader.min_y,ImageReader.min_y], pen = ImageReader.gpen)
         ImageReader.p1lineh2 = pg.PlotCurveItem(x=[ImageReader.min_x, ImageReader.max_x], y=[ImageReader.max_y,ImageReader.max_y], pen =ImageReader.gpen)
-        ImageReader.p4view.addItem(ImageReader.p1lineh1)
-        ImageReader.p4view.addItem(ImageReader.p1linev1)
-        ImageReader.p4view.addItem(ImageReader.p1lineh2)
-        ImageReader.p4view.addItem(ImageReader.p1linev2)
+        ImageReader.plot4.addItem(ImageReader.p1lineh1)
+        ImageReader.plot4.addItem(ImageReader.p1linev1)
+        ImageReader.plot4.addItem(ImageReader.p1lineh2)
+        ImageReader.plot4.addItem(ImageReader.p1linev2)
         # except:
             # print("Initial Peak Finding Failure, please fill out manually")
 
@@ -253,10 +253,10 @@ class ImageReader(QMainWindow):
         # ImageReader.plot1.setImage(ImageReader.imgData)
         # ImageReader.p1view = ImageReader.plot1.getView()
         try:
-            ImageReader.p4view.clear()
+            ImageReader.plot4.clear()
         except:
             print('no previous view')
-        ImageReader.p4view.addItem(ImageReader.img)
+        ImageReader.plot4.addItem(ImageReader.img)
         # ImageReader.outlines = pg.ImageItem(image = outlines)
         ImageReader.min_y = np.min([ImageReader.edminy,np.min(ImageReader.ypeaks)])
         ImageReader.max_y = np.max([ImageReader.edmaxy, np.max(ImageReader.ypeaks)])
@@ -277,10 +277,10 @@ class ImageReader(QMainWindow):
         # ImageReader.p4view = ImageReader.plot4.getView()
         # ImageReader.p1view.addItem(ImageReader.p1dots1)
         # ImageReader.p4view.addItem(ImageReader.outlines)
-        ImageReader.p4view.addItem(ImageReader.p1lineh1)
-        ImageReader.p4view.addItem(ImageReader.p1linev1)
-        ImageReader.p4view.addItem(ImageReader.p1lineh2)
-        ImageReader.p4view.addItem(ImageReader.p1linev2)
+        ImageReader.plot4.addItem(ImageReader.p1lineh1)
+        ImageReader.plot4.addItem(ImageReader.p1linev1)
+        ImageReader.plot4.addItem(ImageReader.p1lineh2)
+        ImageReader.plot4.addItem(ImageReader.p1linev2)
         ImageReader.plot2.plot(ImageReader.hour*value, ImageReader.temperature, pen =ImageReader.gpen)     
         ImageReader.plot3.plot(ImageReader.temperature, ImageReader.hour*value, pen =ImageReader.gpen) 
 
@@ -309,10 +309,10 @@ class ImageReader(QMainWindow):
         ImageReader.min_x = np.min([np.min(np.where(ImageReader.edges ==True)[0]), np.min(ImageReader.xpeaks)])
         ImageReader.max_x = np.max([np.max(np.where(ImageReader.edges ==True)[0]),np.max(ImageReader.xpeaks)])
         try:
-            ImageReader.p4view.clear()
+            ImageReader.plot4.clear()
         except:
             print('no previous view')
-        ImageReader.p4view.addItem(ImageReader.img)
+        ImageReader.plot4.addItem(ImageReader.img)
         # ImageReader.outlines = pg.ImageItem(image = outlines)
 
         ImageFields.ImFields.xmaxIn.setText(f'{ImageReader.max_x}')
@@ -325,13 +325,13 @@ class ImageReader(QMainWindow):
         ImageReader.p1linev2 = pg.PlotCurveItem(x=[ImageReader.max_x, ImageReader.max_x], y=[ImageReader.min_y,ImageReader.max_y], pen =ImageReader.gpen)
         ImageReader.p1lineh1 = pg.PlotCurveItem(x=[ImageReader.min_x, ImageReader.max_x], y=[ImageReader.min_y,ImageReader.min_y], pen = ImageReader.gpen)
         ImageReader.p1lineh2 = pg.PlotCurveItem(x=[ImageReader.min_x, ImageReader.max_x], y=[ImageReader.max_y,ImageReader.max_y], pen =ImageReader.gpen)
-        ImageReader.p4view = ImageReader.plot4.getView()
+        # ImageReader.p4view = ImageReader.plot4.getView()
         # ImageReader.p1view.addItem(ImageReader.p1dots1)
         # ImageReader.p1view.addItem(ImageReader.outlines)
-        ImageReader.p4view.addItem(ImageReader.p1lineh1)
-        ImageReader.p4view.addItem(ImageReader.p1linev1)
-        ImageReader.p4view.addItem(ImageReader.p1lineh2)
-        ImageReader.p4view.addItem(ImageReader.p1linev2)
+        ImageReader.plot4.addItem(ImageReader.p1lineh1)
+        ImageReader.plot4.addItem(ImageReader.p1linev1)
+        ImageReader.plot4.addItem(ImageReader.p1lineh2)
+        ImageReader.plot4.addItem(ImageReader.p1linev2)
         ImageReader.plot2.plot(ImageReader.hour, ImageReader.temperature*value, pen =ImageReader.gpen)     
         ImageReader.plot3.plot(ImageReader.temperature*value, ImageReader.hour, pen =ImageReader.gpen) 
     
@@ -435,23 +435,23 @@ class ImageReader(QMainWindow):
         ImageData.p4spots1 =  pg.ScatterPlotItem(x=fitSpots[1],y=fitSpots[0], pen = 'g', symbol = 'x')
         ImageData.p4spots2 =  pg.ScatterPlotItem(x=unusedSpots[1],y=unusedSpots[0], pen = 'r', symbol = 'x')
         try:
-            ImageReader.p4view.clear()
+            ImageReader.plot4.clear()
         except:
             print('no previous view')
-        ImageReader.p4view = ImageReader.plot4.getView()
-        ImageReader.p4view.addItem(ImageReader.img)
-        ImageReader.p4view.addItem(ImageData.p4dots1)
-        ImageReader.p4view.addItem(ImageData.p4spots1)
-        ImageReader.p4view.addItem(ImageData.p4spots2)
+        # ImageReader.p4view = ImageReader.plot4.getView()
+        ImageReader.plot4.addItem(ImageReader.img)
+        ImageReader.plot4.addItem(ImageData.p4dots1)
+        ImageReader.plot4.addItem(ImageData.p4spots1)
+        ImageReader.plot4.addItem(ImageData.p4spots2)
         # ImageReader.p1linev1 = pg.PlotCurveItem(x=[ImageReader.min_x, ImageReader.min_x], y=[ImageReader.min_y,ImageReader.max_y], pen = ImageReader.gpen)
         # ImageReader.p1linev2 = pg.PlotCurveItem(x=[ImageReader.max_x, ImageReader.max_x], y=[ImageReader.min_y,ImageReader.max_y], pen =ImageReader.gpen)
         # ImageReader.p1lineh1 = pg.PlotCurveItem(x=[ImageReader.min_x, ImageReader.max_x], y=[ImageReader.min_y,ImageReader.min_y], pen = ImageReader.gpen)
         # ImageReader.p1lineh2 = pg.PlotCurveItem(x=[ImageReader.min_x, ImageReader.max_x], y=[ImageReader.max_y,ImageReader.max_y], pen =ImageReader.gpen)
 
-        ImageReader.p4view.addItem(ImageReader.p1lineh1)
-        ImageReader.p4view.addItem(ImageReader.p1linev1)
-        ImageReader.p4view.addItem(ImageReader.p1lineh2)
-        ImageReader.p4view.addItem(ImageReader.p1linev2)
+        ImageReader.plot4.addItem(ImageReader.p1lineh1)
+        ImageReader.plot4.addItem(ImageReader.p1linev1)
+        ImageReader.plot4.addItem(ImageReader.p1lineh2)
+        ImageReader.plot4.addItem(ImageReader.p1linev2)
     def cutdown( xs, ys, gate):
         arr = np.copy(ys)
         for i in range(arr.shape[0]):

@@ -157,45 +157,58 @@ class SimDatWidget(QMainWindow):
         except:
             kinetic_energy_stdv = 0
         # current_time = now.strftime("%H:%M:%S")
+        msgBox = QMessageBox()
+        msgBox.setMinimumHeight(500)
+        msgBox.setWindowIcon(QIcon("mrsPepper.png"))
+        msgBox.setWindowTitle("Loading")
+        msgBox.setIcon(QMessageBox.Warning)
+        msgBox.setText("              Please wait              ")
+        msgBox.show()
+        # l = msgBox.layout()
+#         l.itemAtPosition( l.rowCount() - 1, 0 ).widget().hide()
+        SimDatWidget.progress = QProgressBar()
+        # SimDatWidget.progress.setGeometry(30, 40, 200, 25) 
+# # Add the progress bar at the bottom (last row + 1) and first column with column span
+        # l.addWidget(SimDatWidget.progress,l.rowCount(), 0, 1, l.columnCount(), Qt.AlignCenter )
+        # msgBox.setStandardButtons( QMessageBox.NoButton )
+
+        # msgBox.setIcon(QMessageBox.Critical)
+
+        # msgBox.exec_()
+        
 
         theta1 = np.random.normal(0, 2*np.pi, num_particles)#position
         r = np.sqrt(np.absolute(np.random.normal(0,beamRad**2/2, num_particles)))#position mm
-        now = datetime.now()
-        print("5% ", now.strftime("%H:%M:%S"))
+        SimDatWidget.progress.setValue(5)
+        # msgBox.show()
         x1 = (r * np.cos(theta1) + x_align)
         y1 = (r * np.sin(theta1) + y_align)
         theta2 = np.arccos(1-2*np.random.uniform(0, 0.5*(1-np.cos(theta2_max*np.pi/180)), num_particles))#np.random.normal(0,6.5e-5, num_particles)
-        now = datetime.now()
-        print("15% ", now.strftime("%H:%M:%S"))
+        SimDatWidget.progress.setValue(15)
         phi = 2*np.pi*np.random.uniform(size=num_particles)#np.arccos(np.random.uniform(-1,1,num_particles))
         pos_z = np.random.uniform(-0.5,0.5,num_particles)#mm
         E = np.random.normal(kinetic_energy, kinetic_energy_stdv, num_particles)
         v = np.sqrt(2 * E / (mass_num * amu2eV))*c#mm/s
-        now = datetime.now()
-        print("20% ", now.strftime("%H:%M:%S"))
+        SimDatWidget.progress.setValue(20)
         sign = np.random.uniform(size=1)*2-1
         xp = (np.arctan(np.cos(phi)*np.tan(theta2)))*1000+x1*sign*np.random.normal(50*theta2_max,theta2_max*1,num_particles)#mrad np.sin(theta2)*
         yp = (np.arctan(np.sin(phi)*np.tan(theta2)))*1000+y1*sign*np.random.normal(50*theta2_max,theta2_max*1,num_particles)#mrad 
         zp = np.cos(theta2)#mm/s?
         now = datetime.now()
-        print("40% ", now.strftime("%H:%M:%S"))
+        SimDatWidget.progress.setValue(40)
         vx = v * np.tan(xp /1000)*zp
         vy = v * np.tan(yp /1000)*zp
         #40%
         vz = v * zp 
         SimDatWidget.tempdf = pd.DataFrame({'X':x1,'Y':y1,'Z':pos_z,'Vx':vx,'Vy':vy,'Vz':vz, 'Xp':xp,'Yp': yp})
         # fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(10,10))
-        now = datetime.now()
-        print("45% ", now.strftime("%H:%M:%S"))
+        SimDatWidget.progress.setValue(45)
         SimDatWidget.xxp = np.histogram2d(SimDatWidget.tempdf.X, SimDatWidget.tempdf.Xp,bins = int(np.min([SimDatWidget.tempdf.shape[0]/100,500])))
-        now = datetime.now()
-        print("60% ", now.strftime("%H:%M:%S"))
+        SimDatWidget.progress.setValue(60)
         SimDatWidget.yyp = np.histogram2d(SimDatWidget.tempdf.Y, SimDatWidget.tempdf.Yp,bins =  int(np.min([SimDatWidget.tempdf.shape[0]/100,500])))
-        now = datetime.now()
-        print("70% ", now.strftime("%H:%M:%S"))
+        SimDatWidget.progress.setValue(70)
         SimDatWidget.xy = np.histogram2d(SimDatWidget.tempdf.X, SimDatWidget.tempdf.Y,bins =  int(np.min([SimDatWidget.tempdf.shape[0]/100,500])))
-        now = datetime.now()
-        print("85% ", now.strftime("%H:%M:%S"))
+        SimDatWidget.progress.setValue(85)
         SimDatWidget.xpyp = np.histogram2d(SimDatWidget.tempdf.Xp, SimDatWidget.tempdf.Yp,bins =  int(np.min([SimDatWidget.tempdf.shape[0]/100,500])))
 
         xxp_img = pg.ImageItem(SimDatWidget.xxp[0], invertY=False)#
@@ -227,29 +240,34 @@ class SimDatWidget(QMainWindow):
         SimagesWidget.ax_xpyp.addItem(xpyp_img)
 
         self.show()
-        now = datetime.now()
-        print("95% ", now.strftime("%H:%M:%S"))
+        SimDatWidget.progress.setValue(95)
         SimDatWidget.xemit.setText(f'{np.sqrt(np.mean(SimDatWidget.tempdf.X**2)*np.mean(SimDatWidget.tempdf.Xp**2)-np.mean(SimDatWidget.tempdf.X*SimDatWidget.tempdf.Xp)**2)/np.pi:.3f}')
         SimDatWidget.yemit.setText(f'{np.sqrt(np.mean(SimDatWidget.tempdf.Y**2)*np.mean(SimDatWidget.tempdf.Yp**2)-np.mean(SimDatWidget.tempdf.Y*SimDatWidget.tempdf.Yp)**2)/np.pi:.3f}')
         # del tempdf
         gc.collect()
-        now = datetime.now()
-        print("100% ", now.strftime("%H:%M:%S"))
+        SimDatWidget.progress.setValue(100)
 
     def on_LoadDat_clicked(self):
         loadDatName = QFileDialog.getOpenFileName(caption="Load Particle Data", directory=path, filter="*.pkl")
         SimDatWidget.tempdf = pd.read_pickle(loadDatName[0])
-        now = datetime.now()
-        print("5% ", now.strftime("%H:%M:%S"))
+        msgBox = QMessageBox()
+        msgBox.setMinimumHeight(500)
+        msgBox.setWindowIcon(QIcon("mrsPepper.png"))
+        msgBox.setWindowTitle("Loading")
+        msgBox.setIcon(QMessageBox.Warning)
+        msgBox.setText("Please wait  This May Take a few minutes...        ")
+        msgBox.show()
+        # now = datetime.now()
+        # print("5% ", now.strftime("%H:%M:%S"))
         SimDatWidget.xxp = np.histogram2d(SimDatWidget.tempdf.X, SimDatWidget.tempdf.Xp,bins = int(np.min([SimDatWidget.tempdf.shape[0]/100,500])))
-        now = datetime.now()
-        print("30% ", now.strftime("%H:%M:%S"))
+        # now = datetime.now()
+        # print("30% ", now.strftime("%H:%M:%S"))
         SimDatWidget.yyp = np.histogram2d(SimDatWidget.tempdf.Y, SimDatWidget.tempdf.Yp,bins =  int(np.min([SimDatWidget.tempdf.shape[0]/100,500])))
         now = datetime.now()
-        print("65% ", now.strftime("%H:%M:%S"))
+        # print("65% ", now.strftime("%H:%M:%S"))
         SimDatWidget.xy = np.histogram2d(SimDatWidget.tempdf.X, SimDatWidget.tempdf.Y,bins =  int(np.min([SimDatWidget.tempdf.shape[0]/100,500])))
-        now = datetime.now()
-        print("95% ", now.strftime("%H:%M:%S"))
+        # now = datetime.now()
+        # print("95% ", now.strftime("%H:%M:%S"))
         SimDatWidget.xpyp = np.histogram2d(SimDatWidget.tempdf.Xp, SimDatWidget.tempdf.Yp,bins =  int(np.min([SimDatWidget.tempdf.shape[0]/100,500])))
 
         xxp_img = pg.ImageItem(SimDatWidget.xxp[0], invertY=False)#
@@ -288,7 +306,13 @@ class SimDatWidget(QMainWindow):
         # print(saveDatName)
         SimDatWidget.tempdf.to_pickle(saveDatName[0])
     def on_CalcTraj_clicked(self):
-        print("Number Crunching")
+        msgBox = QMessageBox()
+        msgBox.setMinimumHeight(500)
+        msgBox.setWindowIcon(QIcon("mrsPepper.png"))
+        msgBox.setWindowTitle("Loading")
+        msgBox.setIcon(QMessageBox.Warning)
+        msgBox.setText("Please wait  This May Take a few minutes...        ")
+        msgBox.show()
         hole_diameter = float(Mainapp.MainWindow.MskFields2.diamIn.text())#127e-3 #mm
         hole_separation = float(Mainapp.MainWindow.MskFields2.sepIn.text())#0.50 #mm
         mask_to_screen = float(Mainapp.MainWindow.MskFields2.Mask2ScrnIn.text())#6.35#12.7 #mm
@@ -361,7 +385,10 @@ class SimDatWidget(QMainWindow):
                         zf.append(zt)
                         xf.append(xt)
                         yf.append(yt)
+                    # if j/zi.shape[0]%5 ==0:
+                    #      SimDatWidget.progress.setValue(j/zi.shape[0]*100) #can't access because jit nopython
                     continue
+
                 zf = np.array(zf)
                 xf = np.array(xf)
                 yf = np.array(yf)
@@ -391,24 +418,26 @@ class SimDatWidget(QMainWindow):
         except:
             print("Issue reading in Noise Uncertainty, defaulting to 0")
             noise2 = 0
-        print(np.max(SimDatWidget.hist))
-        print(SimDatWidget.hist)
+        # print(np.max(SimDatWidget.hist))
+        # print(SimDatWidget.hist)
         m = (255-noise1)/np.max(SimDatWidget.hist)
+        now = datetime.now()
+        print("PreNoise % ", now.strftime("%H:%M:%S"))
         noise = np.random.normal(noise1, noise2, (SimDatWidget.hist.shape[0],SimDatWidget.hist.shape[0]))
-        print(noise)
+        # print(noise)
         #print(noise.shape[0])
-        print(np.max(SimDatWidget.hist))
+        # print(np.max(SimDatWidget.hist))
         SimDatWidget.newhist = SimDatWidget.hist*m + noise
-        plt.figure(figsize = (0.98,0.98), dpi =  25.4 * pixpermm)#(2.0455,2.0455)
-        print( SimDatWidget.newhist.shape[0])
-        print(SimDatWidget.newhist)
-        print(np.max(SimDatWidget.newhist[0]))
-        plt.imshow( SimDatWidget.newhist, cmap = plt.cm.gray)
-        #plt.colorbar()
-        plt.axis('off')
-        #filenum2 = filenum # toggle for new emit data
-    #     plt.savefig(imgAlbum+folder+f'simupepper-{filenum2}-h.png', bbox_inches='tight', pad_inches = 0)
-        plt.show()
+        SimDatWidget.hist_img = pg.ImageItem(SimDatWidget.newhist, invertY=False)#
+        # SimDatWidget.hist_img.setRect([min(SimDatWidget.xxp[1]),min(SimDatWidget.xxp[2]),(max(SimDatWidget.xxp[1])-min(SimDatWidget.xxp[1])),(max(SimDatWidget.xxp[2])-min(SimDatWidget.xxp[2]))])
+
+        SimagesWidget.ax_yyp.clear()
+        SimagesWidget.ax_yyp.addItem(SimDatWidget.hist_img)
+        SimagesWidget.yyplabel.setText("Pepperpot Image")
+        # plt.figure(figsize = (0.98,0.98), dpi =  25.4 * pixpermm)#(2.0455,2.0455)
+        # print( SimDatWidget.newhist.shape[0])
+        # print(SimDatWidget.newhist)
+        # print(np.max(SimDatWidget.newhist[0]))
     def on_SaveTraj_clicked():
             saveTrajName = QFileDialog.getSaveFileName(caption="Save Trajectories", filter="*.csv")
             #TODO add ability to save to PNG
@@ -649,11 +678,11 @@ class SimagesWidget(QMainWindow):
         SimagesWidget.ax_yyp =  pg.PlotWidget(plotItem=pg.PlotItem())
         SimagesWidget.ax_xpyp = pg.PlotWidget(plotItem=pg.PlotItem())
         xxplabel = QLabel("X-X'")
-        yyplabel = QLabel("Y-Y'")
+        SimagesWidget.yyplabel = QLabel("Y-Y'")
         xylabel  = QLabel("X-Y")
         xpyplabel = QLabel("X'-Y'")
         xxplabel.setAlignment(Qt.AlignCenter)
-        yyplabel.setAlignment(Qt.AlignCenter)
+        SimagesWidget.yyplabel.setAlignment(Qt.AlignCenter)
         xylabel.setAlignment(Qt.AlignCenter)
         xpyplabel.setAlignment(Qt.AlignCenter)
         self.central_widget.setLayout(self.layoutV1)
@@ -668,7 +697,7 @@ class SimagesWidget(QMainWindow):
 
         self.layoutV1.addLayout(self.layoutH2)
         self.layoutH2.addLayout(self.layoutV4)
-        self.layoutV4.addWidget(yyplabel)
+        self.layoutV4.addWidget(SimagesWidget.yyplabel)
         self.layoutV4.addWidget(SimagesWidget.ax_yyp)
 
         self.layoutH2.addLayout(self.layoutV5)
