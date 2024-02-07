@@ -105,7 +105,7 @@ class SimDatWidget(QMainWindow):
         self.layoutH7.addWidget(SimDatWidget.simRadIn )
 
         self.layoutV1.addLayout(self.layoutH8)
-        self.layoutH8.addWidget(QLabel('Beam Divergence (degrees)'))
+        self.layoutH8.addWidget(QLabel('Beam Divergence (mrad)'))
         self.layoutH8.addWidget(SimDatWidget.simDivIn ) 
 
         self.layoutV1.addLayout(self.layoutH12)
@@ -144,10 +144,10 @@ class SimDatWidget(QMainWindow):
             mass_num = abs(float(SimDatWidget.simMassNumIn.text()))
             kinetic_energy =abs(float(SimDatWidget.simKinEIn.text()))
             beamRad =abs(float(SimDatWidget.simRadIn.text()))
-            theta2_max =abs(float(SimDatWidget.simDivIn.text()))
+            theta2_max =abs(float(SimDatWidget.simDivIn.text()))/1000#rad
         except:
             msgBox = QMessageBox()
-            msgBox.setWindowIcon(QIcon("mrsPepper.png"))
+            msgBox.setWindowIcon(QIcon("mrsPepper.ico"))
             msgBox.setWindowTitle('Particle Data Error')
             msgBox.setIcon(QMessageBox.Critical)
             msgBox.setText('Key Particle Information Failed to load')
@@ -161,7 +161,7 @@ class SimDatWidget(QMainWindow):
         msgBox.setMinimumHeight(500)
         msgBox.setWindowIcon(QIcon("mrsPepper.png"))
         msgBox.setWindowTitle("Loading")
-        msgBox.setIcon(QMessageBox.Warning)
+        msgBox.setIcon(QMessageBox.Information)
         msgBox.setText("              Please wait              ")
         msgBox.show()
         # l = msgBox.layout()
@@ -179,36 +179,49 @@ class SimDatWidget(QMainWindow):
 
         theta1 = np.random.normal(0, 2*np.pi, num_particles)#position
         r = np.sqrt(np.absolute(np.random.normal(0,beamRad**2/2, num_particles)))#position mm
-        SimDatWidget.progress.setValue(5)
+        # SimDatWidget.progress.setValue(5)
         # msgBox.show()
         x1 = (r * np.cos(theta1) + x_align)
         y1 = (r * np.sin(theta1) + y_align)
-        theta2 = np.arccos(1-2*np.random.uniform(0, 0.5*(1-np.cos(theta2_max*np.pi/180)), num_particles))#np.random.normal(0,6.5e-5, num_particles)
-        SimDatWidget.progress.setValue(15)
-        phi = 2*np.pi*np.random.uniform(size=num_particles)#np.arccos(np.random.uniform(-1,1,num_particles))
+        theta2 = np.arccos(1-2*np.random.uniform(0, 0.5*(1-np.cos(theta2_max)), num_particles))#np.random.normal(0,6.5e-5, num_particles)
+        # print(f'RMS x = {np.sqrt(np.sum(x1**2)/x1.shape[0])}')
+        # print(f'RMS y = {np.sqrt(np.sum(y1**2)/y1.shape[0])}')
+        # print(f'RMS div (mrad) = {np.sqrt(np.sum((theta2/1000)**2)/theta2.shape[0])}')
+        now = datetime.now()
+        print("15% ", now.strftime("%H:%M:%S"))
+        phi = 2*np.pi*np.random.uniform(size=num_particles)#*1000#np.arccos(np.random.uniform(-1,1,num_particles))
         pos_z = np.random.uniform(-0.5,0.5,num_particles)#mm
         E = np.random.normal(kinetic_energy, kinetic_energy_stdv, num_particles)
-        v = np.sqrt(2 * E / (mass_num * amu2eV))*c#mm/s
-        SimDatWidget.progress.setValue(20)
+        relgam = E / (mass_num * amu2eV)+1
+        v = np.sqrt(1- 1/(relgam)**2)*c#mm/s
+        relbet = v/c
+        now = datetime.now()
+        print("20% ", now.strftime("%H:%M:%S"))
         sign = np.random.uniform(size=1)*2-1
-        xp = (np.arctan(np.cos(phi)*np.tan(theta2)))*1000+x1*sign*np.random.normal(50*theta2_max,theta2_max*1,num_particles)#mrad np.sin(theta2)*
-        yp = (np.arctan(np.sin(phi)*np.tan(theta2)))*1000+y1*sign*np.random.normal(50*theta2_max,theta2_max*1,num_particles)#mrad 
+        xp = (np.arctan(np.cos(phi)*np.tan(theta2))*1000)+x1*sign*np.random.normal(theta2_max*1000,np.sqrt(theta2_max*1000)/8,num_particles)#mrad np.sin(theta2)*
+        # print(f'mean cos(phi) = {np.mean(np.cos(phi))}')
+        # print(f'mean sin(phi) = {np.mean(np.sin(phi))}')
+        # print(f'mean tan(theta2) = {np.mean(np.tan(theta2))}')
+        # print(f'RMS xp = {np.sqrt(np.sum(xp**2)/xp.shape[0])}')
+        yp = (np.arctan(np.sin(phi)*np.tan(theta2))*1000)+y1*sign*np.random.normal(theta2_max*1000,np.sqrt(theta2_max*1000)/8,num_particles)#mrad 
+        # print(f'RMS yp = {np.sqrt(np.sum(yp**2)/yp.shape[0])}')
         zp = np.cos(theta2)#mm/s?
         now = datetime.now()
-        SimDatWidget.progress.setValue(40)
-        vx = v * np.tan(xp /1000)*zp
-        vy = v * np.tan(yp /1000)*zp
+        print("40% ", now.strftime("%H:%M:%S"))
+        vx = v * np.tan(xp/1000)*zp
+        vy = v * np.tan(yp/1000)*zp
         #40%
         vz = v * zp 
+
         SimDatWidget.tempdf = pd.DataFrame({'X':x1,'Y':y1,'Z':pos_z,'Vx':vx,'Vy':vy,'Vz':vz, 'Xp':xp,'Yp': yp})
         # fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(10,10))
-        SimDatWidget.progress.setValue(45)
+        # SimDatWidget.progress.setValue(45)
         SimDatWidget.xxp = np.histogram2d(SimDatWidget.tempdf.X, SimDatWidget.tempdf.Xp,bins = int(np.min([SimDatWidget.tempdf.shape[0]/100,500])))
-        SimDatWidget.progress.setValue(60)
+        # SimDatWidget.progress.setValue(60)
         SimDatWidget.yyp = np.histogram2d(SimDatWidget.tempdf.Y, SimDatWidget.tempdf.Yp,bins =  int(np.min([SimDatWidget.tempdf.shape[0]/100,500])))
-        SimDatWidget.progress.setValue(70)
+        # SimDatWidget.progress.setValue(70)
         SimDatWidget.xy = np.histogram2d(SimDatWidget.tempdf.X, SimDatWidget.tempdf.Y,bins =  int(np.min([SimDatWidget.tempdf.shape[0]/100,500])))
-        SimDatWidget.progress.setValue(85)
+        # SimDatWidget.progress.setValue(85)
         SimDatWidget.xpyp = np.histogram2d(SimDatWidget.tempdf.Xp, SimDatWidget.tempdf.Yp,bins =  int(np.min([SimDatWidget.tempdf.shape[0]/100,500])))
 
         xxp_img = pg.ImageItem(SimDatWidget.xxp[0], invertY=False)#
@@ -240,9 +253,14 @@ class SimDatWidget(QMainWindow):
         SimagesWidget.ax_xpyp.addItem(xpyp_img)
 
         self.show()
-        SimDatWidget.progress.setValue(95)
+        now = datetime.now()
+        print("95% ", now.strftime("%H:%M:%S"))
+        # print(f'Relativistic Gamma = {relgam}')
+        # print(f'Relativistic Beta = {relbet}')
         SimDatWidget.xemit.setText(f'{np.sqrt(np.mean(SimDatWidget.tempdf.X**2)*np.mean(SimDatWidget.tempdf.Xp**2)-np.mean(SimDatWidget.tempdf.X*SimDatWidget.tempdf.Xp)**2)/np.pi:.3f}')
+        print(f'invariant xemit = {np.mean(relgam)*np.mean(relbet)*np.sqrt(np.mean(SimDatWidget.tempdf.X**2)*np.mean(SimDatWidget.tempdf.Xp**2)-np.mean(SimDatWidget.tempdf.X*SimDatWidget.tempdf.Xp)**2)/np.pi:.5f} pi mm mrad')
         SimDatWidget.yemit.setText(f'{np.sqrt(np.mean(SimDatWidget.tempdf.Y**2)*np.mean(SimDatWidget.tempdf.Yp**2)-np.mean(SimDatWidget.tempdf.Y*SimDatWidget.tempdf.Yp)**2)/np.pi:.3f}')
+        print(f'invariant yemit = {np.mean(relgam)*np.mean(relbet)*np.sqrt(np.mean(SimDatWidget.tempdf.Y**2)*np.mean(SimDatWidget.tempdf.Yp**2)-np.mean(SimDatWidget.tempdf.Y*SimDatWidget.tempdf.Yp)**2)/np.pi:.5f} pi mm mrad')
         # del tempdf
         gc.collect()
         SimDatWidget.progress.setValue(100)
@@ -550,7 +568,7 @@ class simDiv_read(QLineEdit):
     def __init__(self):
         QLineEdit.__init__(self)
         # self.setMaxLength(2)
-        self.setPlaceholderText("degrees")
+        self.setPlaceholderText("mrad")
         self.returnPressed.connect(self.return_pressed)
         self.selectionChanged.connect(self.selection_changed)
         self.textChanged.connect(self.text_changed)
@@ -677,6 +695,19 @@ class SimagesWidget(QMainWindow):
         SimagesWidget.ax_xy =   pg.PlotWidget(plotItem=pg.PlotItem())
         SimagesWidget.ax_yyp =  pg.PlotWidget(plotItem=pg.PlotItem())
         SimagesWidget.ax_xpyp = pg.PlotWidget(plotItem=pg.PlotItem())
+
+        label_style = {'color': '#EEE', 'font-size': '10pt'}
+        SimagesWidget.ax_xxp.setLabel('bottom', "X-Position (mm)", **label_style)
+        SimagesWidget.ax_xxp.setLabel('left', "X-Divergence (mrad)", **label_style)
+
+        SimagesWidget.ax_xy.setLabel('bottom', "X-Position (mm)", **label_style)
+        SimagesWidget.ax_xy.setLabel('left', "Y-Position (mm)", **label_style)
+
+        SimagesWidget.ax_yyp.setLabel('bottom', "Y-Position (mm)", **label_style)
+        SimagesWidget.ax_yyp.setLabel('left', "Y-Divergence (mrad)", **label_style)
+
+        SimagesWidget.ax_xpyp.setLabel('bottom', "X-Divergence (mrad)", **label_style)
+        SimagesWidget.ax_xpyp.setLabel('left', "Y-Divergence (mrad)", **label_style)
         xxplabel = QLabel("X-X'")
         SimagesWidget.yyplabel = QLabel("Y-Y'")
         xylabel  = QLabel("X-Y")

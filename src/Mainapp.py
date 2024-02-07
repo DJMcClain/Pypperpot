@@ -34,7 +34,7 @@ class MainWindow(QMainWindow):
 
     def __init__(self):
         super(MainWindow, self).__init__()
-        self.setWindowIcon(QIcon("mrsPepper.png"))
+        self.setWindowIcon(QIcon("mrsPepper.ico"))
         self.setWindowTitle("PYpperpot 2.3")
         
         self.central_widget = QWidget() # A QWidget to work as Central Widget
@@ -49,8 +49,8 @@ class MainWindow(QMainWindow):
         self.layoutV2 = QVBoxLayout() # Particle and Mask info
 
         self.ImgFields = ImageFields.ImFields()
-        self.MskFields = MaskFields.MaskWidget()
-        MainWindow.MskFields2 = MaskFields.MaskWidget()
+        MainWindow.MskFields = MaskFields.MaskWidget()
+        MainWindow.MskFields2 = MaskFields.SimMaskWidget()
         MainWindow.maskWidth = MaskFields.MaskSimDat()
         self.SimFields = Simulation.SimDatWidget()
         self.SimImages = Simulation.SimagesWidget()
@@ -277,4 +277,4 @@ class MainWindow(QMainWindow):
             # set background color back to light-grey
             MainWindow.edgeboolbutt.setStyleSheet("background-color : lightgrey")
             MainWindow.edgeboolbutt.setText("Edge-Sensing Algorithm")
- 
+    

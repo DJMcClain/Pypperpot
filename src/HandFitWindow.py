@@ -38,7 +38,7 @@ class Handfitting(QWidget):
         self.x3s = x3s
         self.y3s = y3s
         self.setWindowTitle('PYpperpot 2.0 - Hand Fitting')
-        self.setWindowIcon(QIcon('mrsPepper.png'))
+        self.setWindowIcon(QIcon('mrsPepper.ico'))
 
         # self.setLayout(layout)
         

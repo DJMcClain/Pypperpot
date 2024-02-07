@@ -67,8 +67,9 @@ class ImageReader(QMainWindow):
         ImageReader.plot4 = pg.PlotWidget(plotItem=pg.PlotItem())#ImageData.ImagePlot2(view=pg.PlotItem())
         # ImageReader.plot4.set
         self.central_widget.setLayout(self.layoutH0)
-        self.layoutH0.addLayout(self.layoutV0,9)#Plots
         self.layoutH0.addLayout(self.layoutV1,1)#Sliders and Results
+        self.layoutH0.addLayout(self.layoutV0,9)#Plots
+        
         self.layoutV0.addWidget(ImageReader.plot4,5)
         self.layoutV0.addWidget(ImageReader.plot2,5)
         self.layoutV1.addLayout(self.layoutH1)
@@ -216,7 +217,7 @@ class ImageReader(QMainWindow):
         except:
             print('no previous view')
 
-        ImageReader.p1view = ImageReader.plot4.getView()
+        ImageReader.p1view = ImageReader.plot4#.getView()
         ImageReader.outlines = pg.ImageItem(image = ImageReader.outlines)
         ImageReader.p1view.addItem(ImageReader.img)
         
@@ -366,7 +367,7 @@ class ImageReader(QMainWindow):
 
         except:
             msgBox = QMessageBox()
-            msgBox.setWindowIcon(QIcon("mrsPepper.png"))
+            msgBox.setWindowIcon(QIcon("mrsPepper.ico"))
             msgBox.setWindowTitle('Mask Read Error')
             msgBox.setIcon(QMessageBox.Critical)
             msgBox.setText('Fill out mask information before reducing peaks')
