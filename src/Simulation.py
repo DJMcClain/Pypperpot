@@ -27,6 +27,7 @@ import Mainapp
 import MaskFields
 import ImageFields
 from numba import jit
+import uproot
 #TODO TEMPORARY
 from datetime import datetime
 
@@ -266,8 +267,23 @@ class SimDatWidget(QMainWindow):
         SimDatWidget.progress.setValue(100)
 
     def on_LoadDat_clicked(self):
-        loadDatName = QFileDialog.getOpenFileName(caption="Load Particle Data", directory=path, filter="*.pkl")
-        SimDatWidget.tempdf = pd.read_pickle(loadDatName[0])
+        loadDatName = QFileDialog.getOpenFileName(caption="Load Particle Data", directory=path, filter="*.pkl, *.root")
+        if loadDatName[1] == "*.pkl":
+            SimDatWidget.tempdf = pd.read_pickle(loadDatName[0])
+        else:
+            SimDatWidget.tempdf = uproot.open(loadDatName[0])["Particles"]
+            SimDatWidget.tempdf = SimDatWidget.tempdf.arrays(filter_name="*", library = "pd")
+            tempSettingsdf = uproot.open(loadDatName[0])["Settings"]
+            tempSettingsdf = tempSettingsdf.arrays(filter_name="*", library = "pd")
+            SimDatWidget.simNumPartIn.setText(str(tempSettingsdf.num_Part[0]))
+            SimDatWidget.simMassNumIn.setText(str(tempSettingsdf.mass[0]))
+            SimDatWidget.simKinEIn.setText(str(tempSettingsdf.KinEn[0]))
+            SimDatWidget.simKinEstdvIn.setText(str(tempSettingsdf.KinEnErr[0]))
+            SimDatWidget.simRadIn.setText(str(tempSettingsdf.Rad[0]))
+            SimDatWidget.simDivIn.setText(str(tempSettingsdf.Div[0]))#mrad
+            SimDatWidget.simxAlign.setText(str(tempSettingsdf.xoff[0]))
+            SimDatWidget.simyAlign.setText(str(tempSettingsdf.yoff[0]))
+
         msgBox = QMessageBox()
         msgBox.setMinimumHeight(500)
         msgBox.setWindowIcon(QIcon("mrsPepper.png"))
@@ -320,9 +336,43 @@ class SimDatWidget(QMainWindow):
         SimDatWidget.xemit.setText(f'{np.sqrt(np.mean(SimDatWidget.tempdf.X**2)*np.mean(SimDatWidget.tempdf.Xp**2)-np.mean(SimDatWidget.tempdf.X*SimDatWidget.tempdf.Xp)**2)/np.pi:.3f}')
         SimDatWidget.yemit.setText(f'{np.sqrt(np.mean(SimDatWidget.tempdf.Y**2)*np.mean(SimDatWidget.tempdf.Yp**2)-np.mean(SimDatWidget.tempdf.Y*SimDatWidget.tempdf.Yp)**2)/np.pi:.3f}')
     def on_SaveDat_clicked(self):
-        saveDatName = QFileDialog.getSaveFileName(caption="Save Mask", filter="*.pkl")
+        saveDatName = QFileDialog.getSaveFileName(caption="Save Mask", filter="*.pkl, *.root")
         # print(saveDatName)
-        SimDatWidget.tempdf.to_pickle(saveDatName[0])
+        if saveDatName[1]=="*.pkl":
+            SimDatWidget.tempdf.to_pickle(saveDatName[0])
+        else:
+            
+            try:
+                x_align = float(SimDatWidget.simxAlign.text())
+            except:
+                x_align = 0
+            try:
+                y_align =float(SimDatWidget.simyAlign.text())
+            except:
+                y_align = 0
+            try:
+                num_particles = abs(int(float(SimDatWidget.simNumPartIn.text())))
+                mass_num = abs(float(SimDatWidget.simMassNumIn.text()))
+                kinetic_energy =abs(float(SimDatWidget.simKinEIn.text()))
+                beamRad =abs(float(SimDatWidget.simRadIn.text()))
+                theta2_max =abs(float(SimDatWidget.simDivIn.text()))/1000#rad
+            except:
+                msgBox = QMessageBox()
+                msgBox.setWindowIcon(QIcon("mrsPepper.ico"))
+                msgBox.setWindowTitle('Particle Data Error')
+                msgBox.setIcon(QMessageBox.Critical)
+                msgBox.setText('Key Particle Information Failed to load')
+                msgBox.exec_()
+            try:
+                kinetic_energy_stdv =abs(float(SimDatWidget.simKinEstdvIn.text()))
+            except:
+                kinetic_energy_stdv = 0
+            tempSettingsdf = pd.DataFrame(columns= ["num_Part", "mass", "KinEn", "KinEnErr", "Rad", "Div", "xoff", "yoff"])
+            tempSettingsdf.loc[0] = [ num_particles,mass_num,kinetic_energy,kinetic_energy_stdv, beamRad, theta2_max, x_align, y_align]
+            with uproot.recreate(saveDatName[0]) as file:
+                file.compression=uproot.ZLIB(6)
+                file["Particles"] = SimDatWidget.tempdf
+                file["Settings"] = tempSettingsdf
     def on_CalcTraj_clicked(self):
         msgBox = QMessageBox()
         msgBox.setMinimumHeight(500)
