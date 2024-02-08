@@ -1023,16 +1023,17 @@ class PeakByPeakFits():
         # print(f'hole-spot correlation: {2*scipy.stats.pearsonr(xs,hole_x)[0]*stdx}')
         hole_errs = np.arange(0,0.1,0.001)
         # print(f'stdx: {stdx}')
-        for i in hole_errs:
-            # temphole_err = i
-            tempsighij = ImageData.hole_separation * ImageData.pixpermm * np.sqrt((puncert/ImageData.pixpermm)**2+(i/ImageData.hole_separation)**2)
-            plt.plot(i, np.mean(tempsighij), 'o',c = 'b', label = 'no mixing')
-            plt.plot(i,np.mean(np.sqrt(tempsighij**2+(2*stdx)**2 - 2*scipy.stats.pearsonr(xs,hole_x)[0] * tempsighij * (2*stdx))), 'o', c='r', label = 'mixing')
-            # plt.plot(i, stdx)
-        plt.xlabel("Hole Uncertainty (mm)")
-        plt.ylabel("Mean Standard Deviation (pix)")
-        # plt.legend()
-        plt.show()
+        #Find minimum in uncertainty
+        # for i in hole_errs:
+        #     # temphole_err = i
+        #     tempsighij = ImageData.hole_separation * ImageData.pixpermm * np.sqrt((puncert/ImageData.pixpermm)**2+(i/ImageData.hole_separation)**2)
+        #     plt.plot(i, np.mean(tempsighij), 'o',c = 'b', label = 'no mixing')
+        #     plt.plot(i,np.mean(np.sqrt(tempsighij**2+(2*stdx)**2 - 2*scipy.stats.pearsonr(xs,hole_x)[0] * tempsighij * (2*stdx))), 'o', c='r', label = 'mixing')
+        #     # plt.plot(i, stdx)
+        # plt.xlabel("Hole Uncertainty (mm)")
+        # plt.ylabel("Mean Standard Deviation (pix)")
+        # # plt.legend()
+        # plt.show()
         sigsig22 = (mu4x - (intX-3)/(intX-1)*stdx**4)/intX#(13) pix^4, pre squared to avoid errors
         sigL2p2 = 2 * L**2 * pixpermm**2 * np.sqrt((puncert/pixpermm)**2+(sigL/L)**2)#(14) pix^2
         sig1stxp2 = 1000**2 * (stdx**2+xij0**2)/(L**2*pixpermm**2)*np.sqrt((sigsig22+(2*xij0*sigij0)**2)/(stdx**2+xij0**2)**2+sigL2p2**2/(L**4*pixpermm**4))#(15) looks good mrad
