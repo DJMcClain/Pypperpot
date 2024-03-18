@@ -355,7 +355,7 @@ class SimDatWidget(QMainWindow):
                 mass_num = abs(float(SimDatWidget.simMassNumIn.text()))
                 kinetic_energy =abs(float(SimDatWidget.simKinEIn.text()))
                 beamRad =abs(float(SimDatWidget.simRadIn.text()))
-                theta2_max =abs(float(SimDatWidget.simDivIn.text()))/1000#rad
+                theta2_max =abs(float(SimDatWidget.simDivIn.text()))#mrad
             except:
                 msgBox = QMessageBox()
                 msgBox.setWindowIcon(QIcon("mrsPepper.ico"))
