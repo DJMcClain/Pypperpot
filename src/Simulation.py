@@ -249,6 +249,9 @@ class SimDatWidget(QMainWindow):
 
         SimagesWidget.ax_yyp.clear()
         SimagesWidget.ax_yyp.addItem(yyp_img)
+        label_style = {'color': '#EEE', 'font-size': '10pt'}
+        SimagesWidget.ax_yyp.setLabel('bottom', "Y-Position (mm)", **label_style)
+        SimagesWidget.ax_yyp.setLabel('left', "Y-Divergence (mrad)", **label_style)
 
         SimagesWidget.ax_xpyp.clear()
         SimagesWidget.ax_xpyp.addItem(xpyp_img)
@@ -267,8 +270,9 @@ class SimDatWidget(QMainWindow):
         SimDatWidget.progress.setValue(100)
 
     def on_LoadDat_clicked(self):
-        loadDatName = QFileDialog.getOpenFileName(caption="Load Particle Data", directory=path, filter="*.pkl, *.root")
-        if loadDatName[1] == "*.pkl":
+        loadDatName = QFileDialog.getOpenFileName(caption="Load Particle Data", directory=path, filter="*.pkl *.root")
+        # print(loadDatName[0][-4:])
+        if loadDatName[0][-4:] == ".pkl":
             SimDatWidget.tempdf = pd.read_pickle(loadDatName[0])
         else:
             SimDatWidget.tempdf = uproot.open(loadDatName[0])["Particles"]
@@ -283,7 +287,6 @@ class SimDatWidget(QMainWindow):
             SimDatWidget.simDivIn.setText(str(tempSettingsdf.Div[0]))#mrad
             SimDatWidget.simxAlign.setText(str(tempSettingsdf.xoff[0]))
             SimDatWidget.simyAlign.setText(str(tempSettingsdf.yoff[0]))
-
         msgBox = QMessageBox()
         msgBox.setMinimumHeight(500)
         msgBox.setWindowIcon(QIcon("mrsPepper.png"))
@@ -297,6 +300,7 @@ class SimDatWidget(QMainWindow):
         # now = datetime.now()
         # print("30% ", now.strftime("%H:%M:%S"))
         SimDatWidget.yyp = np.histogram2d(SimDatWidget.tempdf.Y, SimDatWidget.tempdf.Yp,bins =  int(np.min([SimDatWidget.tempdf.shape[0]/100,500])))
+        
         now = datetime.now()
         # print("65% ", now.strftime("%H:%M:%S"))
         SimDatWidget.xy = np.histogram2d(SimDatWidget.tempdf.X, SimDatWidget.tempdf.Y,bins =  int(np.min([SimDatWidget.tempdf.shape[0]/100,500])))
@@ -328,6 +332,9 @@ class SimDatWidget(QMainWindow):
 
         SimagesWidget.ax_yyp.clear()
         SimagesWidget.ax_yyp.addItem(yyp_img)
+        label_style = {'color': '#EEE', 'font-size': '10pt'}
+        SimagesWidget.ax_yyp.setLabel('bottom', "Y-Position (mm)", **label_style)
+        SimagesWidget.ax_yyp.setLabel('left', "Y-Divergence (mrad)", **label_style)
 
         SimagesWidget.ax_xpyp.clear()
         SimagesWidget.ax_xpyp.addItem(xpyp_img)
@@ -336,9 +343,9 @@ class SimDatWidget(QMainWindow):
         SimDatWidget.xemit.setText(f'{np.sqrt(np.mean(SimDatWidget.tempdf.X**2)*np.mean(SimDatWidget.tempdf.Xp**2)-np.mean(SimDatWidget.tempdf.X*SimDatWidget.tempdf.Xp)**2)/np.pi:.3f}')
         SimDatWidget.yemit.setText(f'{np.sqrt(np.mean(SimDatWidget.tempdf.Y**2)*np.mean(SimDatWidget.tempdf.Yp**2)-np.mean(SimDatWidget.tempdf.Y*SimDatWidget.tempdf.Yp)**2)/np.pi:.3f}')
     def on_SaveDat_clicked(self):
-        saveDatName = QFileDialog.getSaveFileName(caption="Save Mask", filter="*.pkl, *.root")
+        saveDatName = QFileDialog.getSaveFileName(caption="Save Mask", filter="*.pkl *.root")
         # print(saveDatName)
-        if saveDatName[1]=="*.pkl":
+        if saveDatName[0][-4:]==".pkl":
             SimDatWidget.tempdf.to_pickle(saveDatName[0])
         else:
             
@@ -355,7 +362,7 @@ class SimDatWidget(QMainWindow):
                 mass_num = abs(float(SimDatWidget.simMassNumIn.text()))
                 kinetic_energy =abs(float(SimDatWidget.simKinEIn.text()))
                 beamRad =abs(float(SimDatWidget.simRadIn.text()))
-                theta2_max =abs(float(SimDatWidget.simDivIn.text()))/1000#rad
+                theta2_max =abs(float(SimDatWidget.simDivIn.text()))#mrad
             except:
                 msgBox = QMessageBox()
                 msgBox.setWindowIcon(QIcon("mrsPepper.ico"))
@@ -501,6 +508,9 @@ class SimDatWidget(QMainWindow):
 
         SimagesWidget.ax_yyp.clear()
         SimagesWidget.ax_yyp.addItem(SimDatWidget.hist_img)
+        label_style = {'color': '#EEE', 'font-size': '10pt'}
+        SimagesWidget.ax_yyp.setLabel('bottom', "X-Position (pix)", **label_style)
+        SimagesWidget.ax_yyp.setLabel('left', "Y-Position (pix)", **label_style)
         SimagesWidget.yyplabel.setText("Pepperpot Image")
         # plt.figure(figsize = (0.98,0.98), dpi =  25.4 * pixpermm)#(2.0455,2.0455)
         # print( SimDatWidget.newhist.shape[0])

@@ -65,6 +65,13 @@ class ImageReader(QMainWindow):
         ImageReader.plot3 = ImageData.yProjection()
         ImageReader.plot1 = pg.PlotWidget(plotItem=pg.PlotItem())#ImageData.ImagePlot1(view=pg.PlotItem())
         ImageReader.plot4 = pg.PlotWidget(plotItem=pg.PlotItem())#ImageData.ImagePlot2(view=pg.PlotItem())
+        label_style = {'color': '#000', 'font-size': '10pt'}
+        ImageReader.plot2.getAxis('bottom').setPen('k')
+        ImageReader.plot2.getAxis('left').setPen('k')
+        ImageReader.plot2.getAxis('bottom').setTextPen('k')
+        ImageReader.plot2.getAxis('left').setTextPen('k')
+        ImageReader.plot2.setLabel('bottom', "Position (mm)", **label_style)
+        ImageReader.plot2.setLabel('left', "Divergence (mrad)", **label_style)
         # ImageReader.plot4.set
         self.central_widget.setLayout(self.layoutH0)
         self.layoutH0.addLayout(self.layoutV1,1)#Sliders and Results
