@@ -520,9 +520,14 @@ class SimDatWidget(QMainWindow):
         # print(SimDatWidget.newhist)
         # print(np.max(SimDatWidget.newhist[0]))
     def on_SaveTraj_clicked():
-            saveTrajName = QFileDialog.getSaveFileName(caption="Save Trajectories", filter="*.csv")
-            #TODO add ability to save to PNG
+        saveTrajName = QFileDialog.getSaveFileName(caption="Save Trajectories", filter="*.png *.csv *.bmp")
+        if saveTrajName[0][-4:]==".csv":
             np.savetxt(saveTrajName[0], SimDatWidget.newhist.T, delimiter=",")
+        else:
+            im = Image.fromarray(SimDatWidget.newhist.T)
+            im = im.convert("L")
+            im.save(saveTrajName[0])
+            
 class num_part_read(QLineEdit):
     def __init__(self):
         QLineEdit.__init__(self)
