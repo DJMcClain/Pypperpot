@@ -477,12 +477,14 @@ class PeakByPeakFits():
     def Binning(arr):
         spotx = arr.T[0]-ImageData.x_offset
         spoty = arr.T[1]-ImageData.y_offset
+        print(spotx)
         binx = np.copy(spotx)
         biny = np.copy(spoty)
         # print(np.unique(spotx).shape[0])
         # print(np.mean(spotx[abs(spotx)==min(abs(spotx))]))
         centerx = np.mean(spotx[abs(spotx)==min(abs(spotx))])
         centery = np.mean(spoty[abs(spoty)==min(abs(spoty))])
+    
         # if n_holes%2 !=0: #if our hole number is odd
         i = 0
         j = 0
@@ -492,49 +494,61 @@ class PeakByPeakFits():
         negSpoty = spoty[spoty < 0]
         binx[spotx == centerx] = 0 
         biny[spoty == centery] = 0 
-        tempx = min(posSpotx[posSpotx > centerx])#1
-        tempy = min(posSpoty[posSpoty > centery])#1
-        for spot in np.unique(posSpotx):
-            i+=1
-            binx[spotx == tempx] = i
-        #     print(tempx)
-            try:
-                tempx =  min(posSpotx[posSpotx > tempx])
-
-            except:
-                break
-
-        for spot in np.unique(posSpoty):
-            j+=1
-            biny[spoty == tempy] = j
-        #     print(tempy)
-            try:
-                tempy =  min(posSpoty[posSpoty > tempy])
-            except:
-                break
+        try:
+            tempx = min(posSpotx[posSpotx > centerx])#1
             
-        tempx = max(negSpotx[negSpotx < centerx])#1
-        tempy = max(negSpoty[negSpoty < centery])#1  
-        i = 0
-        j = 0
-        for spot in np.unique(negSpotx):
-            i-=1
-            binx[spotx == tempx] = i
-        #     print(tempx)
-            try:
-                tempx = max(negSpotx[negSpotx < tempx])
-            except:
-                break
+            for spot in np.unique(posSpotx):
+                i+=1
+                binx[spotx == tempx] = i
+            #     print(tempx)
+                try:
+                    tempx =  min(posSpotx[posSpotx > tempx])
 
-        for spot in np.unique(negSpoty):
-            j-=1
-            biny[spoty == tempy] = j
-        #     print(tempy)
-            try:
-                tempy = max(negSpoty[negSpoty < tempy])
-            except:
-                break
-        # min(spotx[spotx > 0 ])
+                except:
+                    break
+        except:
+            print("No positive X vals")        
+        try:
+            tempy = min(posSpoty[posSpoty > centery])#1
+            for spot in np.unique(posSpoty):
+                j+=1
+                biny[spoty == tempy] = j
+            #     print(tempy)
+                try:
+                    tempy =  min(posSpoty[posSpoty > tempy])
+                except:
+                    break
+        except:
+            print ('no Positive Y values')  
+        try:     
+            tempx = max(negSpotx[negSpotx < centerx])#1
+             
+            i = 0
+            
+            for spot in np.unique(negSpotx):
+                i-=1
+                binx[spotx == tempx] = i
+            #     print(tempx)
+                try:
+                    tempx = max(negSpotx[negSpotx < tempx])
+                except:
+                    break
+        except:
+            print("No negative X values")
+        try:
+            j = 0
+            tempy = max(negSpoty[negSpoty < centery])#1 
+            for spot in np.unique(negSpoty):
+                j-=1
+                biny[spoty == tempy] = j
+            #     print(tempy)
+                try:
+                    tempy = max(negSpoty[negSpoty < tempy])
+                except:
+                    break
+        except:
+            print('no negative Y values')
+            # min(spotx[spotx > 0 ])
         # print(binx)
         outarr = np.array([binx,biny]).T
         return(outarr)
@@ -548,7 +562,7 @@ class PeakByPeakFits():
         for x in np.unique(locs3[0]):
             for y in np.unique(locs3[1]):
                 holes.append([x,y])
-                spots = np.array(spots)
+        spots = np.array(spots)
         holes = np.array(holes)
         ordered_spots = PeakByPeakFits.get_ordered_list(spots, ImageData.x_offset,  ImageData.y_offset)#order by distance away from center
         ordered_holes = PeakByPeakFits.get_ordered_list(holes,  ImageData.x_offset,  ImageData.y_offset)
@@ -556,11 +570,17 @@ class PeakByPeakFits():
         ordered_holes = np.array(ordered_holes)
         spot2 = ordered_spots#[:4]
         hole2 = ordered_holes#[:4]
+        print("spot2")
+        print(spot2)
         #attempt to overcome many hole tripping
         spot3 = PeakByPeakFits.Binning(spot2)
         hole3 = PeakByPeakFits.Binning(hole2)
         hole4 = np.copy(spot3)
         spot4 = np.copy(spot3)
+        print("spot4")
+        print(spot4)
+        # print("hole4")
+        # print(hole4)
         # print(hole2[(hole3.T[0]==0) & (hole3.T[1]==0)])
         for i in np.unique(spot3).astype(int):
             for j in np.unique(spot3).astype(int):
@@ -964,10 +984,10 @@ class PeakByPeakFits():
         # plt.legend()
         # plt.show()
         # plto = pg.PlotItem()
-        xvalsItem = pg.ScatterPlotItem(x=(xs-x_offset)/pixpermm, y=xps, pen=pg.mkPen("#1f77b4", width=1),brush = pg.mkBrush("#1f77b4"),name = f'Horizontal Phase Space: $\epsilon_x$ = {emitX:.3f} +/- {emitXerr:.3f} $\pi$*mm*mrad')
-        yvalsItem = pg.ScatterPlotItem(x=(ys-y_offset)/pixpermm, y=yps, pen=pg.mkPen("#ff7f0e", width=1),brush = pg.mkBrush("#ff7f0e"),name=f'Vertical Phase Space: $\epsilon_y$ = {emitY:.3f} +/- {emitYerr:.3f} $\pi$*mm*mrad')
-        xerrsItem = pg.ErrorBarItem(x=(xs-x_offset)/pixpermm, y=xps, height =2* xperr, width=2*sterxs/pixpermm, beam = 0.1,pen = pg.mkPen("#1f77b4", width=1))
-        yerrsItem = pg.ErrorBarItem(x=(ys-y_offset)/pixpermm, y=yps, height =2* yperr,width = 2*sterys/pixpermm, beam = 0.1, pen = pg.mkPen("#ff7f0e", width=1))
+        xvalsItem = pg.ScatterPlotItem(x=((xs-x_offset)-(meanXtot2-x_offset))/pixpermm, y=xps, pen=pg.mkPen("#1f77b4", width=1),brush = pg.mkBrush("#1f77b4"),name = f'Horizontal Phase Space: $\epsilon_x$ = {emitX:.3f} +/- {emitXerr:.3f} $\pi$*mm*mrad')
+        yvalsItem = pg.ScatterPlotItem(x=((ys-y_offset)-(meanYtot2-y_offset))/pixpermm, y=yps, pen=pg.mkPen("#ff7f0e", width=1),brush = pg.mkBrush("#ff7f0e"),name=f'Vertical Phase Space: $\epsilon_y$ = {emitY:.3f} +/- {emitYerr:.3f} $\pi$*mm*mrad')
+        xerrsItem = pg.ErrorBarItem(x=((xs-x_offset)-(meanXtot2-x_offset))/pixpermm, y=xps, height =2* xperr, width=2*sterxs/pixpermm, beam = 0.1,pen = pg.mkPen("#1f77b4", width=1))
+        yerrsItem = pg.ErrorBarItem(x=((ys-y_offset)-(meanYtot2-y_offset))/pixpermm, y=yps, height =2* yperr,width = 2*sterys/pixpermm, beam = 0.1, pen = pg.mkPen("#ff7f0e", width=1))
         ImageData.ImageReader.plot2.plot(ellipsexs,ellipse1x, pen=pg.mkPen("#1f77b4", width=1))
         ImageData.ImageReader.plot2.plot(ellipsexs,ellipse2x, pen=pg.mkPen("#1f77b4", width=1))
         ImageData.ImageReader.plot2.plot(ellipseys,ellipse1y, pen=pg.mkPen("#ff7f0e", width=1))

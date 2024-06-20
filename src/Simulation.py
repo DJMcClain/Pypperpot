@@ -248,11 +248,12 @@ class SimDatWidget(QMainWindow):
         SimagesWidget.ax_xy.addItem(xy_img)
 
         SimagesWidget.ax_yyp.clear()
+        SimagesWidget.ax_yyp.enableAutoRange()
         SimagesWidget.ax_yyp.addItem(yyp_img)
         label_style = {'color': '#EEE', 'font-size': '10pt'}
         SimagesWidget.ax_yyp.setLabel('bottom', "Y-Position (mm)", **label_style)
         SimagesWidget.ax_yyp.setLabel('left', "Y-Divergence (mrad)", **label_style)
-
+        SimagesWidget.yyplabel = QLabel("Y-Y'")
         SimagesWidget.ax_xpyp.clear()
         SimagesWidget.ax_xpyp.addItem(xpyp_img)
 
@@ -270,8 +271,8 @@ class SimDatWidget(QMainWindow):
         SimDatWidget.progress.setValue(100)
 
     def on_LoadDat_clicked(self):
-        loadDatName = QFileDialog.getOpenFileName(caption="Load Particle Data", directory=path, filter="*.pkl *.root")
-        # print(loadDatName[0][-4:])
+        loadDatName = QFileDialog.getOpenFileName(caption="Load Particle Data", directory=path, filter="*.root *.pkl")
+        print(loadDatName[0][-4:])
         if loadDatName[0][-4:] == ".pkl":
             SimDatWidget.tempdf = pd.read_pickle(loadDatName[0])
         else:
@@ -331,11 +332,12 @@ class SimDatWidget(QMainWindow):
         SimagesWidget.ax_xy.addItem(xy_img)
 
         SimagesWidget.ax_yyp.clear()
+        SimagesWidget.ax_yyp.enableAutoRange()
         SimagesWidget.ax_yyp.addItem(yyp_img)
         label_style = {'color': '#EEE', 'font-size': '10pt'}
         SimagesWidget.ax_yyp.setLabel('bottom', "Y-Position (mm)", **label_style)
         SimagesWidget.ax_yyp.setLabel('left', "Y-Divergence (mrad)", **label_style)
-
+        SimagesWidget.yyplabel = QLabel("Y-Y'")
         SimagesWidget.ax_xpyp.clear()
         SimagesWidget.ax_xpyp.addItem(xpyp_img)
         now = datetime.now()
@@ -343,7 +345,7 @@ class SimDatWidget(QMainWindow):
         SimDatWidget.xemit.setText(f'{np.sqrt(np.mean(SimDatWidget.tempdf.X**2)*np.mean(SimDatWidget.tempdf.Xp**2)-np.mean(SimDatWidget.tempdf.X*SimDatWidget.tempdf.Xp)**2)/np.pi:.3f}')
         SimDatWidget.yemit.setText(f'{np.sqrt(np.mean(SimDatWidget.tempdf.Y**2)*np.mean(SimDatWidget.tempdf.Yp**2)-np.mean(SimDatWidget.tempdf.Y*SimDatWidget.tempdf.Yp)**2)/np.pi:.3f}')
     def on_SaveDat_clicked(self):
-        saveDatName = QFileDialog.getSaveFileName(caption="Save Mask", filter="*.pkl *.root")
+        saveDatName = QFileDialog.getSaveFileName(caption="Save Mask", filter="*.root *.pkl")
         # print(saveDatName)
         if saveDatName[0][-4:]==".pkl":
             SimDatWidget.tempdf.to_pickle(saveDatName[0])
@@ -507,6 +509,7 @@ class SimDatWidget(QMainWindow):
         # SimDatWidget.hist_img.setRect([min(SimDatWidget.xxp[1]),min(SimDatWidget.xxp[2]),(max(SimDatWidget.xxp[1])-min(SimDatWidget.xxp[1])),(max(SimDatWidget.xxp[2])-min(SimDatWidget.xxp[2]))])
 
         SimagesWidget.ax_yyp.clear()
+        SimagesWidget.ax_yyp.enableAutoRange()
         SimagesWidget.ax_yyp.addItem(SimDatWidget.hist_img)
         label_style = {'color': '#EEE', 'font-size': '10pt'}
         SimagesWidget.ax_yyp.setLabel('bottom', "X-Position (pix)", **label_style)
@@ -517,13 +520,18 @@ class SimDatWidget(QMainWindow):
         # print(SimDatWidget.newhist)
         # print(np.max(SimDatWidget.newhist[0]))
     def on_SaveTraj_clicked():
-            saveTrajName = QFileDialog.getSaveFileName(caption="Save Trajectories", filter="*.csv")
-            #TODO add ability to save to PNG
+        saveTrajName = QFileDialog.getSaveFileName(caption="Save Trajectories", filter="*.png *.csv *.bmp")
+        if saveTrajName[0][-4:]==".csv":
             np.savetxt(saveTrajName[0], SimDatWidget.newhist.T, delimiter=",")
+        else:
+            im = Image.fromarray(SimDatWidget.newhist.T)
+            im = im.convert("L")
+            im.save(saveTrajName[0])
+            
 class num_part_read(QLineEdit):
     def __init__(self):
         QLineEdit.__init__(self)
-        self.setMaxLength(6)
+        # self.setMaxLength(10)
         self.setPlaceholderText("#")
         self.returnPressed.connect(self.return_pressed)
         self.selectionChanged.connect(self.selection_changed)
@@ -756,6 +764,10 @@ class SimagesWidget(QMainWindow):
         SimagesWidget.ax_yyp =  pg.PlotWidget(plotItem=pg.PlotItem())
         SimagesWidget.ax_xpyp = pg.PlotWidget(plotItem=pg.PlotItem())
 
+        SimagesWidget.ax_xxp.enableAutoRange()
+        SimagesWidget.ax_xy.enableAutoRange()
+        SimagesWidget.ax_yyp.enableAutoRange()
+        SimagesWidget.ax_xpyp.enableAutoRange()
         label_style = {'color': '#EEE', 'font-size': '10pt'}
         SimagesWidget.ax_xxp.setLabel('bottom', "X-Position (mm)", **label_style)
         SimagesWidget.ax_xxp.setLabel('left', "X-Divergence (mrad)", **label_style)

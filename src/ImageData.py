@@ -25,8 +25,7 @@ import ImageFields
 import Sliders
 import ResultFields
 
-# path = os.getcwd()
-path = 'D:/Workspace/Images/'
+path = os.getcwd()
 scale = 1
 imgData = np.array([[0, 0, 0], [0, 0, 0]])
 
@@ -104,17 +103,19 @@ class ImageReader(QMainWindow):
 
         if loadImageName[0][-3:] == "png":
             ImageData.imgData = ImageReader.image_GSmatrix(loadImageName)
-            ImageData.imgData = ImageData.imgData[10:-10,10:-10]
+            ImageData.imgData = ImageData.imgData#[10:-10,10:-10]
         elif loadImageName[0][-3:] == "jpg":
             ImageData.imgData = ImageReader.image_GSmatrix(loadImageName) 
-            ImageData.imgData = ImageData.imgData[10:-10,10:-10]
+            ImageData.imgData = ImageData.imgData#[10:-10,10:-10]
         elif loadImageName[0][-3:] == "bmp":
             ImageData.imgData = ImageReader.image_GSmatrix(loadImageName) 
-            ImageData.imgData = ImageData.imgData[10:-10,10:-10]
+            ImageData.imgData = ImageData.imgData#[10:-10,10:-10]
         elif loadImageName[0][-3:] == "csv":
             ImageData.imgData = ImageReader.csv_GSmatrix(loadImageName) 
+            # ImageData.imgData = ImageData.imgData.T
         elif loadImageName[0][-3:] == "txt":
             ImageData.imgData = ImageReader.csv_GSmatrix(loadImageName) 
+            
 
         try:
             ImageReader.plot4.clear()
@@ -141,6 +142,8 @@ class ImageReader(QMainWindow):
             ImageReader.edmaxy = np.max(np.where(ImageReader.edges ==True)[1])
             ImageReader.edminx = np.min(np.where(ImageReader.edges ==True)[0])
             ImageReader.edmaxx = np.max(np.where(ImageReader.edges ==True)[0])
+            print(f'min Y {ImageReader.edminy}')
+            print(f'min X {ImageReader.edminx}')
         except:
             ImageReader.edges = [ImageData.x_offset,ImageData.y_offset]
             ImageReader.edminy = ImageData.y_offset
@@ -151,7 +154,7 @@ class ImageReader(QMainWindow):
         xpeaks=[]
         ypeaks=[]
         for row in ImageData.imgData:
-            peaks = scipy.signal.find_peaks(row, height = ImageReader.threshold/3, prominence = 8)
+            peaks = scipy.signal.find_peaks(row, height = ImageReader.threshold/2, prominence = 8)
             if peaks[0].shape[0] != 0:
                 for peak in peaks[0]:
                     xpeaks.append(peak)
@@ -160,10 +163,11 @@ class ImageReader(QMainWindow):
         #Define Values
         ImageReader.xpeaks = np.array(xpeaks)
         ImageReader.ypeaks = np.array(ypeaks)
-        ImageReader.min_y = np.min([ImageReader.edminy, np.min(ImageReader.ypeaks)])
-        ImageReader.max_y = np.max([ImageReader.edmaxy, np.max(ImageReader.ypeaks)])
-        ImageReader.min_x = np.min([ImageReader.edminx, np.min(ImageReader.xpeaks)])
-        ImageReader.max_x = np.max([ImageReader.edmaxx, np.max(ImageReader.xpeaks)])
+        ImageReader.min_y = np.min([ImageReader.edminy, np.min(ImageReader.xpeaks)])
+        ImageReader.max_y = np.max([ImageReader.edmaxy, np.max(ImageReader.xpeaks)])
+        ImageReader.min_x = np.min([ImageReader.edminx, np.min(ImageReader.ypeaks)])
+        ImageReader.max_x = np.max([ImageReader.edmaxx, np.max(ImageReader.ypeaks)])
+        print(f'edgeminX:{ImageReader.edminx}, peakminx: {np.min(ImageReader.xpeaks)}')
         #Write Values to GUI
         ImageFields.ImFields.xmaxIn.setText(f'{ImageReader.max_x}')
         ImageFields.ImFields.xminIn.setText(f'{ImageReader.min_x}')
@@ -194,7 +198,7 @@ class ImageReader(QMainWindow):
         xpeaks=[]
         ypeaks=[]
         for row in ImageData.imgData:
-            peaks = scipy.signal.find_peaks(row, height = ImageReader.threshold/3, prominence = 8)
+            peaks = scipy.signal.find_peaks(row, height = ImageReader.threshold/2, prominence = 8)
             if peaks[0].shape[0] != 0:
                 for peak in peaks[0]:
                     xpeaks.append(peak)
@@ -266,10 +270,10 @@ class ImageReader(QMainWindow):
             print('no previous view')
         ImageReader.plot4.addItem(ImageReader.img)
         # ImageReader.outlines = pg.ImageItem(image = outlines)
-        ImageReader.min_y = np.min([ImageReader.edminy,np.min(ImageReader.ypeaks)])
-        ImageReader.max_y = np.max([ImageReader.edmaxy, np.max(ImageReader.ypeaks)])
-        ImageReader.min_x = np.min([ImageReader.edminx, np.min(ImageReader.xpeaks)])
-        ImageReader.max_x = np.max([ImageReader.edmaxx,np.max(ImageReader.xpeaks)])
+        ImageReader.min_y = np.min([ImageReader.edminy,np.min(ImageReader.xpeaks)])
+        ImageReader.max_y = np.max([ImageReader.edmaxy, np.max(ImageReader.xpeaks)])
+        ImageReader.min_x = np.min([ImageReader.edminx, np.min(ImageReader.ypeaks)])
+        ImageReader.max_x = np.max([ImageReader.edmaxx,np.max(ImageReader.ypeaks)])
         ImageReader.img = pg.ImageItem(image = ImageData.imgData)
         # ImageReader.plot1.setImage(ImageReader.imgData)
         ImageFields.ImFields.xmaxIn.setText(f'{ImageReader.max_x}')
@@ -289,8 +293,8 @@ class ImageReader(QMainWindow):
         ImageReader.plot4.addItem(ImageReader.p1linev1)
         ImageReader.plot4.addItem(ImageReader.p1lineh2)
         ImageReader.plot4.addItem(ImageReader.p1linev2)
-        ImageReader.plot2.plot(ImageReader.hour*value, ImageReader.temperature, pen =ImageReader.gpen)     
-        ImageReader.plot3.plot(ImageReader.temperature, ImageReader.hour*value, pen =ImageReader.gpen) 
+        # ImageReader.plot2.plot(ImageReader.hour*value, ImageReader.temperature, pen =ImageReader.gpen)     
+        # ImageReader.plot3.plot(ImageReader.temperature, ImageReader.hour*value, pen =ImageReader.gpen) 
 
     def changeProminence(value):
         # ImageReader.plot1.clear()
@@ -312,10 +316,10 @@ class ImageReader(QMainWindow):
             i+=1
         ImageReader.xpeaks = np.array(xpeaks)
         ImageReader.ypeaks = np.array(ypeaks)
-        ImageReader.min_y = np.min([np.min(np.where(ImageReader.edges ==True)[1]),np.min(ImageReader.ypeaks)])
-        ImageReader.max_y = np.max([np.max(np.where(ImageReader.edges ==True)[1]), np.max(ImageReader.ypeaks)])
-        ImageReader.min_x = np.min([np.min(np.where(ImageReader.edges ==True)[0]), np.min(ImageReader.xpeaks)])
-        ImageReader.max_x = np.max([np.max(np.where(ImageReader.edges ==True)[0]),np.max(ImageReader.xpeaks)])
+        ImageReader.min_y = np.min([np.min(np.where(ImageReader.edges ==True)[1]),np.min(ImageReader.xpeaks)])
+        ImageReader.max_y = np.max([np.max(np.where(ImageReader.edges ==True)[1]), np.max(ImageReader.xpeaks)])
+        ImageReader.min_x = np.min([np.min(np.where(ImageReader.edges ==True)[0]), np.min(ImageReader.ypeaks)])
+        ImageReader.max_x = np.max([np.max(np.where(ImageReader.edges ==True)[0]),np.max(ImageReader.ypeaks)])
         try:
             ImageReader.plot4.clear()
         except:
@@ -392,7 +396,7 @@ class ImageReader(QMainWindow):
             ImageData.yshift = int(ImageFields.ImFields.y_offsetIn.text())
         except:
             print("Y Shift Failure, Defaulting to 0")
-            ImageData.yshift = 2
+            ImageData.yshift = 0
         try:
             ImageData.xshift = int(ImageFields.ImFields.x_offsetIn.text())
         except:
@@ -403,9 +407,9 @@ class ImageReader(QMainWindow):
         x1s = []
         x2s = []
 
-        for x1, y1 in zip(*np.where(ImageReader.edges)):
-            y1s.append(y1+ImageData.xshift)
-            x1s.append(x1+ImageData.yshift)
+        for y1, x1 in zip(*np.where(ImageReader.edges)):
+            y1s.append(y1+ImageData.yshift)
+            x1s.append(x1+ImageData.xshift)
     
         y1s = np.array(y1s)
         x1s = np.array(x1s)
@@ -413,7 +417,7 @@ class ImageReader(QMainWindow):
         x2s, y2s = ImageReader.cutdown(x1s,y1s,  math.ceil(ImageData.d/ImageData.pixpermm))
         print(f'edges x2: {x2s.shape[0]}')
         print(f'peaks x1: {ImageReader.xpeaks.shape[0]}')
-        x1s,y1s = ImageReader.cutdown(ImageReader.xpeaks+ImageData.yshift,ImageReader.ypeaks+ImageData.xshift,  math.ceil(ImageData.d/ImageData.pixpermm))
+        x1s,y1s = ImageReader.cutdown(ImageReader.xpeaks+ImageData.xshift,ImageReader.ypeaks+ImageData.yshift,  math.ceil(ImageData.d/ImageData.pixpermm))
         print(f'peaks x2: {x1s.shape[0]}')
         ImageData.y3s = []
         ImageData.x3s = []
@@ -486,20 +490,20 @@ class xProjection(PlotWidget):
         super().__init__(parent, background, plotItem, **kargs)
 
         self.setBackground('w')
-        self.hour = np.array([1,2,3,4,5,6,7,8,9,10])
-        self.temperature = np.array([30,32,34,32,33,31,29,32,35,45])
-        self.rpen = pg.mkPen(color=(255, 0, 0))
-        self.plot(self.hour, self.temperature, pen = self.rpen)
+        # self.hour = np.array([1,2,3,4,5,6,7,8,9,10])
+        # self.temperature = np.array([30,32,34,32,33,31,29,32,35,45])
+        # self.rpen = pg.mkPen(color=(255, 0, 0))
+        # self.plot(self.hour, self.temperature, pen = self.rpen)
 
 class yProjection(PlotWidget):
     def __init__(self, parent=None, background='w', plotItem=None, **kargs):
         super().__init__(parent, background, plotItem, **kargs)
         
         self.setBackground('w')
-        self.hour = np.array([1,2,3,4,5,6,7,8,9,10])
-        self.temperature = np.array([30,32,34,32,33,31,29,32,35,45])
-        self.gpen = pg.mkPen(color=(0, 255, 0))
-        self.plot(self.temperature, self.hour, pen = self.gpen)
+        # self.hour = np.array([1,2,3,4,5,6,7,8,9,10])
+        # self.temperature = np.array([30,32,34,32,33,31,29,32,35,45])
+        # self.gpen = pg.mkPen(color=(0, 255, 0))
+        # self.plot(self.temperature, self.hour, pen = self.gpen)
 
     
 class ImagePlot2(pg.ImageView):

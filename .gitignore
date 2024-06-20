@@ -1,3 +1,6 @@
 *.root
 *.pkl
 *.csv
+*.bmp
+*.jpeg
+*.png
