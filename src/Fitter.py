@@ -920,9 +920,9 @@ class PeakByPeakFits():
             yperr = yperr[~np.isnan(yperr)]
 
         if np.isnan(mu4ys).any():
-            print('stinky bad mu4 y')
+            print('bad mu4 y')
         if np.isnan(mu4xs).any():
-            print('stinky bad mu4 x')
+            print('bad mu4 x')
 
         return intX, sterxs, hole_x, xps, xs, xperr, stdx, intY, sterys, hole_y, yps, yperr, ys, stdy, mu4xs, mu4ys
 
@@ -944,25 +944,25 @@ class PeakByPeakFits():
         exp_xxp = ((np.sum(intX*hole_x*xps)-(np.sum(intX)*meanXp2*meanXtot2))/(pixpermm))/np.sum((intX))#mmmrad
         emitX = np.sqrt(exp_x2 * exp_xp2 - exp_xxp**2)/np.pi
 
-        alphX = -exp_xxp / emitX * np.pi
-        betX = exp_x2 / emitX * np.pi
-        gamX = exp_xp2 / emitX * np.pi
+        alphX = -exp_xxp / emitX
+        betX = exp_x2 / emitX
+        gamX = exp_xp2 / emitX 
         # print(f"alpha = {alphX}")
         # print(f"beta = {betX}")
         ellipsexs = np.arange((min(xs)-x_offset)/pixpermm-2, (max(xs)-x_offset)/pixpermm+2, 0.05)
-        ellipse1x = (np.sqrt(betX * emitX*np.pi - ellipsexs**2)-alphX*ellipsexs)/betX
-        ellipse2x = (-np.sqrt(betX * emitX*np.pi - ellipsexs**2)-alphX*ellipsexs)/betX
+        ellipse1x = (np.sqrt(betX * emitX * np.pi - ellipsexs**2)-alphX*ellipsexs)/betX
+        ellipse2x = (-np.sqrt(betX * emitX * np.pi - ellipsexs**2)-alphX*ellipsexs)/betX
         emitXerr = PeakByPeakFits.EmittanceUncertaintyFunc(intX, sterxs, hole_x, xps, xs, xperr, stdx, meanXtot2, meanXp2, exp_x2, exp_xp2, exp_xxp, mask_to_screen, sigL, mu4xs, emitX, pixpermm, x_offset, hole_err, puncert)
         exp_y2 =  np.sum(intY * (hole_y - meanYtot2)**2/pixpermm**2)/np.sum((intY))#mm
         exp_yp2 = np.sum((intY *(np.arctan(sterys/(mask_to_screen*pixpermm))*1000)**2+intY*(yps - meanYp2)**2))/np.sum((intY))#mrad
         exp_yyp = ((np.sum(intY*hole_y*yps)-(np.sum(intY)*meanYp2*meanYtot2))/(pixpermm))/np.sum((intY))#mmmrad
         emitY = np.sqrt(exp_y2 * exp_yp2 - exp_yyp**2)/np.pi
-        alphY = -exp_yyp / emitY * np.pi
-        betY = exp_y2 / emitY * np.pi
-        gamY = exp_yp2 / emitY * np.pi
+        alphY = -exp_yyp / emitY
+        betY = exp_y2 / emitY
+        gamY = exp_yp2 / emitY
         ellipseys = np.arange((min(ys)-y_offset)/pixpermm-2, (max(ys)-y_offset)/pixpermm+2, 0.05)
-        ellipse1y = (np.sqrt(betY * emitY*np.pi - ellipseys**2)-alphY*ellipseys)/betY
-        ellipse2y = (-np.sqrt(betY * emitY*np.pi - ellipseys**2)-alphY*ellipseys)/betY
+        ellipse1y = (np.sqrt(betY * emitY * np.pi - ellipseys**2)-alphY*ellipseys)/betY
+        ellipse2y = (-np.sqrt(betY * emitY * np.pi - ellipseys**2)-alphY*ellipseys)/betY
         emitYerr = PeakByPeakFits.EmittanceUncertaintyFunc(intY, sterys, hole_y, yps, ys, yperr, stdy, meanYtot2, meanYp2, exp_y2, exp_yp2, exp_yyp, mask_to_screen, sigL, mu4ys, emitY,pixpermm, y_offset, hole_err, puncert)
         ImageData.ImageReader.plot2.clear()
         ImageData.ImageReader.plot3.clear()
@@ -988,10 +988,10 @@ class PeakByPeakFits():
         yvalsItem = pg.ScatterPlotItem(x=((ys-y_offset)-(meanYtot2-y_offset))/pixpermm, y=yps, pen=pg.mkPen("#ff7f0e", width=1),brush = pg.mkBrush("#ff7f0e"),name=f'Vertical Phase Space: $\epsilon_y$ = {emitY:.3f} +/- {emitYerr:.3f} $\pi$*mm*mrad')
         xerrsItem = pg.ErrorBarItem(x=((xs-x_offset)-(meanXtot2-x_offset))/pixpermm, y=xps, height =2* xperr, width=2*sterxs/pixpermm, beam = 0.1,pen = pg.mkPen("#1f77b4", width=1))
         yerrsItem = pg.ErrorBarItem(x=((ys-y_offset)-(meanYtot2-y_offset))/pixpermm, y=yps, height =2* yperr,width = 2*sterys/pixpermm, beam = 0.1, pen = pg.mkPen("#ff7f0e", width=1))
-        ImageData.ImageReader.plot2.plot(ellipsexs,ellipse1x, pen=pg.mkPen("#1f77b4", width=1))
-        ImageData.ImageReader.plot2.plot(ellipsexs,ellipse2x, pen=pg.mkPen("#1f77b4", width=1))
-        ImageData.ImageReader.plot2.plot(ellipseys,ellipse1y, pen=pg.mkPen("#ff7f0e", width=1))
-        ImageData.ImageReader.plot2.plot(ellipseys,ellipse2y, pen=pg.mkPen("#ff7f0e", width=1))
+        ImageData.ImageReader.plot2.plot(ellipsexs,ellipse1x, pen=pg.mkPen("#1f77b4", width=5), alpha = 0.8)
+        ImageData.ImageReader.plot2.plot(ellipsexs,ellipse2x, pen=pg.mkPen("#1f77b4", width=5), alpha = 0.8)
+        ImageData.ImageReader.plot2.plot(ellipseys,ellipse1y, pen=pg.mkPen("#ff7f0e", width=5), alpha = 0.8)
+        ImageData.ImageReader.plot2.plot(ellipseys,ellipse2y, pen=pg.mkPen("#ff7f0e", width=5), alpha = 0.8)
         ImageData.ImageReader.plot2.addItem(xerrsItem)
         ImageData.ImageReader.plot2.addItem(yerrsItem)
         ImageData.ImageReader.plot2.addItem(xvalsItem)
