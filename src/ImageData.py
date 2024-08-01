@@ -25,8 +25,7 @@ import ImageFields
 import Sliders
 import ResultFields
 
-# path = os.getcwd()
-path = 'D:/Workspace/Images/'
+path = os.getcwd()
 scale = 1
 imgData = np.array([[0, 0, 0], [0, 0, 0]])
 
