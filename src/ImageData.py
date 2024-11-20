@@ -124,7 +124,8 @@ class ImageReader(QMainWindow):
         ImageData.imgData = ImageData.imgData.T
         ImageData.x_offset = ImageData.imgData.shape[0]/2
         ImageData.y_offset = ImageData.imgData.shape[1]/2
-        ImageReader.img = pg.ImageItem(image = ImageData.imgData, invertY = False)
+        ImageReader.img = pg.ImageItem(image = ImageData.imgData, invertY = False, levels=(0,255))
+        # ImageReader.img.setLookupTable()
         # ImageReader.img2 = pg.ImageItem(image = ImageData.imgData) 
 
         ImageReader.threshold = filters.threshold_otsu(ImageData.imgData)
@@ -274,7 +275,7 @@ class ImageReader(QMainWindow):
         ImageReader.max_y = np.max([ImageReader.edmaxy, np.max(ImageReader.xpeaks)])
         ImageReader.min_x = np.min([ImageReader.edminx, np.min(ImageReader.ypeaks)])
         ImageReader.max_x = np.max([ImageReader.edmaxx,np.max(ImageReader.ypeaks)])
-        ImageReader.img = pg.ImageItem(image = ImageData.imgData)
+        ImageReader.img = pg.ImageItem(image = ImageData.imgData, invertY = False, levels=(0,255))
         # ImageReader.plot1.setImage(ImageReader.imgData)
         ImageFields.ImFields.xmaxIn.setText(f'{ImageReader.max_x}')
         ImageFields.ImFields.xminIn.setText(f'{ImageReader.min_x}')
@@ -348,7 +349,7 @@ class ImageReader(QMainWindow):
         ImageReader.plot3.plot(ImageReader.temperature*value, ImageReader.hour, pen =ImageReader.gpen) 
     
     def image_GSmatrix(path):
-        img = Image.open(path[0]).convert('L')  # convert image to 8-bit grayscale
+        img = Image.open(path[0]).convert('P')  # convert image to 8-bit grayscale
         WIDTH, HEIGHT = img.size
         data = list(img.getdata()) # convert image data to a list of integers
         # convert that to 2D list (list of lists of integers)
