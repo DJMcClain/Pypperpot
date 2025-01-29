@@ -329,7 +329,7 @@ class calib_err_read(QLineEdit):
     def __init__(self):
         QLineEdit.__init__(self)
         self.setMaxLength(8)
-        self.setPlaceholderText("0.0005")
+        self.setPlaceholderText("0.05")
         self.returnPressed.connect(self.return_pressed)
         self.selectionChanged.connect(self.selection_changed)
         self.textChanged.connect(self.text_changed)
@@ -351,7 +351,7 @@ class hole_err_read(QLineEdit):
     def __init__(self):
         QLineEdit.__init__(self)
         self.setMaxLength(8)
-        self.setPlaceholderText("0.00005")
+        self.setPlaceholderText("0.005")
         self.returnPressed.connect(self.return_pressed)
         self.selectionChanged.connect(self.selection_changed)
         self.textChanged.connect(self.text_changed)
