@@ -259,7 +259,9 @@ class ImageReader(QMainWindow):
             ImageReader.edminx = np.min(np.where(ImageReader.edges ==True)[0])
             ImageReader.edmaxx = np.max(np.where(ImageReader.edges ==True)[0])
         except:
-            print("Something went wrong changing thresholds")
+            print(f"Something went wrong changing threshold to {value}")
+            ImageData.reduced = True
+            return
         # outlines = np.zeros((*ImageReader.edges.shape,4))
         # outlines[:, :, 0] = 255 * ImageReader.edges
         # outlines[:, :, 3] = 255.0 * ImageReader.edges

@@ -61,6 +61,7 @@ class MainWindow(QMainWindow):
         MainWindow.edgeboolbutt = QPushButton("Edge-Sensing Algorithm",self)
         multiFit = QPushButton('Multi Fit (Max 8 peaks)')
         pbpFit = QPushButton('Peak-By-Peak Fit')
+        AutopbpFit = QPushButton('Auto Peak-By-Peak Fit')
         self.handfit = QPushButton('Hand Fit')
         loadImagePrompt = QPushButton('Load Image')
         CalcTrajPrompt = QPushButton('Calculate Trajectories')
@@ -81,6 +82,7 @@ class MainWindow(QMainWindow):
         loadImagePrompt.clicked.connect(ImageData.ImageReader.on_LoadIm_clicked)
         multiFit.clicked.connect(Fitter.MultiFits.on_MultiFit_clicked)
         pbpFit.clicked.connect(Fitter.PeakByPeakFits.on_pbpFit_clicked)
+        AutopbpFit.clicked.connect(Fitter.PeakByPeakFits.on_AutoFit_clicked)
         self.handfit.clicked.connect(self.on_Hand_clicked)
         MainWindow.edgeboolbutt.setCheckable(True)
         MainWindow.edgeboolbutt.clicked.connect(self.edgeBoolClicked)
@@ -105,6 +107,7 @@ class MainWindow(QMainWindow):
         self.layoutV1.addLayout(self.layoutH10)
         #self.layoutH10.addWidget(multiFit)
         self.layoutH10.addWidget(pbpFit)
+        self.layoutH10.addWidget(AutopbpFit)
         #self.layoutH10.addWidget(self.handfit)   
     #Simulation
         self.layoutH1.addLayout(self.layoutV2,1)

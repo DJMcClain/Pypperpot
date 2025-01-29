@@ -381,7 +381,7 @@ class PeakByPeakFits():
         try:
             puncert = float(MaskFields.MaskWidget.puncert.text()) #pix/mm
         except:
-            puncert = 0.0005
+            puncert = 0.05
         try:
             sigL = float(MaskFields.MaskWidget.sigL.text())#mm
         except:
@@ -391,7 +391,7 @@ class PeakByPeakFits():
             PeakByPeakFits.hole_errmm = hole_err #mm
             hole_err = ImageData.hole_separation * ImageData.pixpermm * np.sqrt((puncert/ImageData.pixpermm)**2+(hole_err/ImageData.hole_separation)**2)#px
         except:
-            hole_err = 0.00005#mm
+            hole_err = 0.005#mm
             PeakByPeakFits.hole_errmm = hole_err #mm
             hole_err = ImageData.hole_separation * ImageData.pixpermm * np.sqrt((puncert/ImageData.pixpermm)**2+(hole_err/ImageData.hole_separation)**2)#px
 
@@ -469,6 +469,35 @@ class PeakByPeakFits():
         # print(ImageData.resultsdf())
         return
   
+    def on_AutoFit_clicked():
+        xemit = []
+        xerr = []
+        yemit = []
+        yerr = []
+        avgemit = []
+        avgerr = []
+        threshold = []
+        for i in range(10):
+            ImageData.ImageReader.changeThreshold(i+1)
+            if ImageData.reduced == False:
+                ImageData.ImageReader.on_Reduce_clicked()
+                PeakByPeakFits.on_pbpFit_clicked()
+                xemit.append(float(ResultFields.ResFields.xemit.text()))
+                xerr.append(float(ResultFields.ResFields.xemiterr.text()))
+                yemit.append(float(ResultFields.ResFields.yemit.text()))
+                yerr.append(float(ResultFields.ResFields.yemiterr.text()))
+                avg = (float(ResultFields.ResFields.xemit.text()) + float(ResultFields.ResFields.yemit.text()))/2
+                delavg = 1/2 * np.sqrt(float(ResultFields.ResFields.xemiterr.text())**2+float(ResultFields.ResFields.yemiterr.text())**2)
+                avgemit.append(avg)
+                avgerr.append(delavg)
+                threshold.append(i+1)
+            else:
+                break
+        print('-------------------------------------------------------------------------------------------------------')
+        print('Threshold \t Avg Emit \t Avg err \t Xemit \t\t xerr \t\t Yemit \t\t yerr')
+        for i in range(len((threshold))):
+            print(f'\t{threshold[i]} \t {avgemit[i]:.3f} \t\t {avgerr[i]:.3f} \t\t {xemit[i]:.3f} \t\t {xerr[i]:.3f} \t\t {yemit[i]:.3f} \t\t {yerr[i]:.3f}')
+        print('-------------------------------------------------------------------------------------------------------')
     def get_ordered_list(points, x, y):
         new_points = []
         new_points = sorted(points,key = lambda p: (p[0] - x)**2 + (p[1] - y)**2)
