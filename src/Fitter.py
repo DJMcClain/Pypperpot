@@ -24,6 +24,7 @@ import MaskFields
 import HandFitWindow
 import Sliders
 import ResultFields
+import Mainapp
 
 fitbool = False
 def gaussian(x, height, center, sigma, offset):
@@ -477,8 +478,14 @@ class PeakByPeakFits():
         avgemit = []
         avgerr = []
         threshold = []
+
+        use_threshold = not Mainapp.MainWindow.edgeboolbutt.isChecked()  # If toggled, use prominence
+
         for i in range(10):
-            ImageData.ImageReader.changeThreshold(i+1)
+            if use_threshold:
+                ImageData.ImageReader.changeThreshold(i+1)
+            else:
+                ImageData.ImageReader.changeProminence(i+1)
             if ImageData.reduced == False:
                 ImageData.ImageReader.on_Reduce_clicked()
                 PeakByPeakFits.on_pbpFit_clicked()
@@ -494,10 +501,11 @@ class PeakByPeakFits():
             else:
                 break
         print('-------------------------------------------------------------------------------------------------------')
-        print('Threshold \t Avg Emit \t Avg err \t Xemit \t\t xerr \t\t Yemit \t\t yerr')
+        print(f'{"Threshold" if use_threshold else "Prominence"} \t Avg Emit \t Avg err \t Xemit \t\t xerr \t\t Yemit \t\t yerr')
         for i in range(len((threshold))):
             print(f'\t{threshold[i]} \t {avgemit[i]:.3f} \t\t {avgerr[i]:.3f} \t\t {xemit[i]:.3f} \t\t {xerr[i]:.3f} \t\t {yemit[i]:.3f} \t\t {yerr[i]:.3f}')
         print('-------------------------------------------------------------------------------------------------------')
+        
     def get_ordered_list(points, x, y):
         new_points = []
         new_points = sorted(points,key = lambda p: (p[0] - x)**2 + (p[1] - y)**2)
