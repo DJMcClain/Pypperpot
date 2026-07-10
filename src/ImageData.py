@@ -187,6 +187,7 @@ class ImageReader(QMainWindow):
         ImageReader.plot4.addItem(ImageReader.p1linev1)
         ImageReader.plot4.addItem(ImageReader.p1lineh2)
         ImageReader.plot4.addItem(ImageReader.p1linev2)
+        ImageData.reduced = False
         # except:
             # print("Initial Peak Finding Failure, please fill out manually")
 
@@ -300,6 +301,7 @@ class ImageReader(QMainWindow):
         # ImageReader.plot3.plot(ImageReader.temperature, ImageReader.hour*value, pen =ImageReader.gpen) 
 
     def changeProminence(value):
+        ImageData.reduced = False
         # ImageReader.plot1.clear()
         # ImageReader.edges = feature.canny(ImageReader.binary_image, sigma=value)
         # outlines = np.zeros((*ImageReader.edges.shape,4))
